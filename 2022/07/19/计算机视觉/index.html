@@ -1,0 +1,1142 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="计算机视觉IoUIoU（Intersection over Union），又称重叠度&#x2F;交并比。 1 NMS：当在图像中预测多个proposals、pred bboxes时，由于预测的结果间可能存在高冗余（即同一个目标可能被预测多个矩形框），因此可以过滤掉一些彼此间高重合度的结果；具体操作就是根据各个bbox的score降序排序，剔除与高score bbox有较高重合度的低score bb">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机视觉">
+<meta property="og:url" content="http://example.com/2022/07/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="计算机视觉IoUIoU（Intersection over Union），又称重叠度&#x2F;交并比。 1 NMS：当在图像中预测多个proposals、pred bboxes时，由于预测的结果间可能存在高冗余（即同一个目标可能被预测多个矩形框），因此可以过滤掉一些彼此间高重合度的结果；具体操作就是根据各个bbox的score降序排序，剔除与高score bbox有较高重合度的低score bb">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://pic2.zhimg.com/80/v2-8fb0aa2eebc1931432eb0ed92059d2c1_hd.jpg">
+<meta property="og:image" content="https://pic2.zhimg.com/80/v2-215e95291d2e4129206da27e7f5de6e9_hd.jpg">
+<meta property="og:image" content="http://example.com/2022/07/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/DLIB-0020.png">
+<meta property="og:image" content="http://example.com/2022/07/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/DLIB-0021.jpg">
+<meta property="og:image" content="https://pic2.zhimg.com/80/v2-7e1dd60163df014ad08ea15388fedd51_hd.jpg">
+<meta property="og:image" content="https://pic3.zhimg.com/80/v2-f3d821d5661e41f6bbeddea2a7ce4972_hd.jpg">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-dbcb5bac2c1e97e151cfe756d5cc55e8_hd.jpg">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-6b533fc4b307c03992a07b08812a12e4_hd.jpg">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-30ee6334f6aa93f9d10889fa4a3d1a10_hd.jpg">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-e01ddf90fc9862e12ae5ab0d7416bc10_hd.jpg">
+<meta property="og:image" content="https://pic3.zhimg.com/80/v2-46dbabe907e601580c065aa03ee1a89a_hd.jpg">
+<meta property="og:image" content="https://pic4.zhimg.com/80/v2-525566cf829e30dcdc4156a3ada7303f_hd.jpg">
+<meta property="og:image" content="https://pic3.zhimg.com/80/v2-f86ce8588802e5cfee2d2f09303f98d2_hd.jpg">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-5bf4a2d116d55aa4685df9a10488fce0_hd.jpg">
+<meta property="og:image" content="https://pic3.zhimg.com/80/v2-bce2e48f2913849f4029404cfbde9616_hd.jpg">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-7e00ce50249def8536978cc12a5cafe0_hd.jpg">
+<meta property="og:image" content="https://pic3.zhimg.com/80/v2-44f9d8d3f66e59e407a4edb5a02ea4ea_hd.jpg">
+<meta property="article:published_time" content="2022-07-19T13:37:00.000Z">
+<meta property="article:modified_time" content="2022-07-19T13:43:12.687Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="深度学习">
+<meta property="article:tag" content="计算机视觉">
+<meta property="article:tag" content="目标检测">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://pic2.zhimg.com/80/v2-8fb0aa2eebc1931432eb0ed92059d2c1_hd.jpg">
+  
+  
+  
+  <title>计算机视觉 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.2","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>chaosuo&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="计算机视觉"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2022-07-19 21:37" pubdate>
+          2022年7月19日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          33k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          272 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">计算机视觉</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="计算机视觉"><a href="#计算机视觉" class="headerlink" title="计算机视觉"></a>计算机视觉</h1><h2 id="IoU"><a href="#IoU" class="headerlink" title="IoU"></a>IoU</h2><p>IoU（Intersection over Union），又称重叠度&#x2F;交并比。</p>
+<p><strong>1 NMS</strong>：当在图像中预测多个proposals、pred bboxes时，由于预测的结果间可能存在高冗余（即同一个目标可能被预测多个矩形框），因此可以过滤掉一些彼此间高重合度的结果；具体操作就是根据各个bbox的score降序排序，剔除与高score bbox有较高重合度的低score bbox，那么重合度的度量指标就是IoU；</p>
+<p><strong>2 mAP</strong>：得到检测算法的预测结果后，需要对pred bbox与gt bbox一起评估检测算法的性能，涉及到的评估指标为mAP，那么当一个pred bbox与gt bbox的重合度较高（如IoU score &gt; 0.5），且分类结果也正确时，就可以认为是该pred bbox预测正确，这里也同样涉及到IoU的概念；</p>
+<p>提到IoU，大家都知道怎么回事，讲起来也都头头是道，我拿两个图示意下（以下两张图都不是本人绘制）：</p>
+<p><img src="https://pic2.zhimg.com/80/v2-8fb0aa2eebc1931432eb0ed92059d2c1_hd.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>绿框：gt bbox；</p>
+<p>红框：pred bbox；</p>
+<p>那么IoU的计算如下：</p>
+<p><img src="https://pic2.zhimg.com/80/v2-215e95291d2e4129206da27e7f5de6e9_hd.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>简单点说，就是<strong>gt bbox、pred bbox交集的面积 &#x2F; 二者并集的面积</strong>；</p>
+<p>好了，现在理解IoU的原理和计算方法了，就应该思考如何函数实现了，这也是我写本笔记的原因；</p>
+<p>有次面试实习生的时候，一位同学讲各类目标检测算法头头是道，说到自己复现某某算法的mAP高达多少多少，问完他做的各种改进后，觉得小伙子还是挺不错的；</p>
+<p>后来我是想着问问mAP的概念吧，但又觉得有点太复杂，不容易一下讲清楚细节，那就问问IoU吧，结果那位小朋友像傻逼一样看着我，说就是两个bbox的交并比啊，我说那要不你写段伪代码实现下吧，既然简单的话，应该实现起来还是很快的（一般我们也都会有这么个写伪代码的面试步骤，考考动手能力和思考能力吧）；然后那位自信满满的小伙子就立马下手开始写了，一般听完题目直接写代码的面试者，有两种可能性：</p>
+<p>1 确实写过类似的代码，已经知道里面有哪些坑了，直接信手拈来；</p>
+<p>2 没写过类似的代码，且把问题考虑简单化了；</p>
+<p>我说你不用着急写，可以先想想两个bbox出现交集的各种情况，如两个bbox如何摆放，位置，以及二者不存在交集的情况等等（看到IoU的具体代码后，你会发现虽然只有寥寥几行代码，但其实已经处理好此类情况了），然后他画了几个图，瞬间表情严肃起来，然后我继续说你还得考虑一个bbox包围另一个bbox；两bbox并不是边角相交，而是两条边相交的特殊情况等等（说到这里我觉得自己也坏坏滴，故意把人家往歪路上牵。。。但主要是看得出来他确实不熟悉IoU的实现了），他就又画了若干种情况，最后开始写代码，刚开始还ok，写了十几行，后来越加越多，草稿纸上也涂涂改改越来越夸张，脸也越胀越红；我看了下他的代码，觉得他思路还行，考虑的还挺周全的，就给了他一个提示：你有没有考虑到你列举的这些情况，有一些可以合并的？他看了下，觉得是可以合并一些情况，就删减了部分代码，稿纸上就更乱了，然后又问他：可不可以继续合并；他就又继续思考了。。。大概是后来越想越复杂，就给我说这个原理他懂的，代码也看过，但现在确实是没能写出来；然后我安慰他，说如果没写过的话，确实是会把问题考虑简单化 &#x2F; 复杂化，不过我并不是专门考个题目刁难你，而是因为你一直都在做目标检测，所以以为IoU的原理、实现你应该会比较熟悉的，写起代码也应该没问题的；而且你的思路也挺好的，先考虑各种复杂情况，再慢慢合并一些情况，先从1到N，再回到1就行，只不过可能到了N，没考虑到如何再回到1了；</p>
+<p>再后来，也面试过其他实习生同学，问到了IoU的实现，很可惜，好像还没有一位同学能圆满写出来的。。。当然了，可能是我有时候过于抠细节了，不利于他们的发挥吧。。。</p>
+<p>好了，以上都是废话，看看如何实现吧；</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># -*- coding: utf-8 -*-</span><br><span class="hljs-comment">#</span><br><span class="hljs-comment"># This is the python code for calculating bbox IoU,</span><br><span class="hljs-comment"># By running the script, we can get the IoU score between pred / gt bboxes</span><br><span class="hljs-comment">#</span><br><span class="hljs-comment"># Author: hzhumeng01 2018-10-19</span><br><span class="hljs-comment"># copyright @ netease, AI group</span><br><br><span class="hljs-keyword">from</span> __future__ <span class="hljs-keyword">import</span> print_function, absolute_import<br><span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">get_IoU</span>(<span class="hljs-params">pred_bbox, gt_bbox</span>):<br>    <span class="hljs-string">&quot;&quot;&quot;</span><br><span class="hljs-string">    return iou score between pred / gt bboxes</span><br><span class="hljs-string">    :param pred_bbox: predict bbox coordinate</span><br><span class="hljs-string">    :param gt_bbox: ground truth bbox coordinate</span><br><span class="hljs-string">    :return: iou score</span><br><span class="hljs-string">    &quot;&quot;&quot;</span><br><br>    <span class="hljs-comment"># bbox should be valid, actually we should add more judgements, just ignore here...</span><br>    <span class="hljs-comment"># assert ((abs(pred_bbox[2] - pred_bbox[0]) &gt; 0) and</span><br>    <span class="hljs-comment">#         (abs(pred_bbox[3] - pred_bbox[1]) &gt; 0))</span><br>    <span class="hljs-comment"># assert ((abs(gt_bbox[2] - gt_bbox[0]) &gt; 0) and</span><br>    <span class="hljs-comment">#         (abs(gt_bbox[3] - gt_bbox[1]) &gt; 0))</span><br><br>    <span class="hljs-comment"># -----0---- get coordinates of inters</span><br>    ixmin = <span class="hljs-built_in">max</span>(pred_bbox[<span class="hljs-number">0</span>], gt_bbox[<span class="hljs-number">0</span>])<br>    iymin = <span class="hljs-built_in">max</span>(pred_bbox[<span class="hljs-number">1</span>], gt_bbox[<span class="hljs-number">1</span>])<br>    ixmax = <span class="hljs-built_in">min</span>(pred_bbox[<span class="hljs-number">2</span>], gt_bbox[<span class="hljs-number">2</span>])<br>    iymax = <span class="hljs-built_in">min</span>(pred_bbox[<span class="hljs-number">3</span>], gt_bbox[<span class="hljs-number">3</span>])<br>    iw = np.maximum(ixmax - ixmin + <span class="hljs-number">1.</span>, <span class="hljs-number">0.</span>)<br>    ih = np.maximum(iymax - iymin + <span class="hljs-number">1.</span>, <span class="hljs-number">0.</span>)<br><br>    <span class="hljs-comment"># -----1----- intersection</span><br>    inters = iw * ih<br><br>    <span class="hljs-comment"># -----2----- union, uni = S1 + S2 - inters</span><br>    uni = ((pred_bbox[<span class="hljs-number">2</span>] - pred_bbox[<span class="hljs-number">0</span>] + <span class="hljs-number">1.</span>) * (pred_bbox[<span class="hljs-number">3</span>] - pred_bbox[<span class="hljs-number">1</span>] + <span class="hljs-number">1.</span>) +<br>           (gt_bbox[<span class="hljs-number">2</span>] - gt_bbox[<span class="hljs-number">0</span>] + <span class="hljs-number">1.</span>) * (gt_bbox[<span class="hljs-number">3</span>] - gt_bbox[<span class="hljs-number">1</span>] + <span class="hljs-number">1.</span>) -<br>           inters)<br><br>    <span class="hljs-comment"># -----3----- iou</span><br>    overlaps = inters / uni<br><br>    <span class="hljs-keyword">return</span> overlaps<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">get_max_IoU</span>(<span class="hljs-params">pred_bboxes, gt_bbox</span>):<br>    <span class="hljs-string">&quot;&quot;&quot;</span><br><span class="hljs-string">    given 1 gt bbox, &gt;1 pred bboxes, return max iou score for the given gt bbox and pred_bboxes</span><br><span class="hljs-string">    :param pred_bbox: predict bboxes coordinates, we need to find the max iou score with gt bbox for these pred bboxes</span><br><span class="hljs-string">    :param gt_bbox: ground truth bbox coordinate</span><br><span class="hljs-string">    :return: max iou score</span><br><span class="hljs-string">    &quot;&quot;&quot;</span><br><br>    <span class="hljs-comment"># bbox should be valid, actually we should add more judgements, just ignore here...</span><br>    <span class="hljs-comment"># assert ((abs(gt_bbox[2] - gt_bbox[0]) &gt; 0) and</span><br>    <span class="hljs-comment">#         (abs(gt_bbox[3] - gt_bbox[1]) &gt; 0))</span><br><br>    <span class="hljs-keyword">if</span> pred_bboxes.shape[<span class="hljs-number">0</span>] &gt; <span class="hljs-number">0</span>:<br>        <span class="hljs-comment"># -----0---- get coordinates of inters, but with multiple predict bboxes</span><br>        ixmin = np.maximum(pred_bboxes[:, <span class="hljs-number">0</span>], gt_bbox[<span class="hljs-number">0</span>])<br>        iymin = np.maximum(pred_bboxes[:, <span class="hljs-number">1</span>], gt_bbox[<span class="hljs-number">1</span>])<br>        ixmax = np.minimum(pred_bboxes[:, <span class="hljs-number">2</span>], gt_bbox[<span class="hljs-number">2</span>])<br>        iymax = np.minimum(pred_bboxes[:, <span class="hljs-number">3</span>], gt_bbox[<span class="hljs-number">3</span>])<br>        iw = np.maximum(ixmax - ixmin + <span class="hljs-number">1.</span>, <span class="hljs-number">0.</span>)<br>        ih = np.maximum(iymax - iymin + <span class="hljs-number">1.</span>, <span class="hljs-number">0.</span>)<br><br>        <span class="hljs-comment"># -----1----- intersection</span><br>        inters = iw * ih<br><br>        <span class="hljs-comment"># -----2----- union, uni = S1 + S2 - inters</span><br>        uni = ((gt_bbox[<span class="hljs-number">2</span>] - gt_bbox[<span class="hljs-number">0</span>] + <span class="hljs-number">1.</span>) * (gt_bbox[<span class="hljs-number">3</span>] - gt_bbox[<span class="hljs-number">1</span>] + <span class="hljs-number">1.</span>) +<br>               (pred_bboxes[:, <span class="hljs-number">2</span>] - pred_bboxes[:, <span class="hljs-number">0</span>] + <span class="hljs-number">1.</span>) * (pred_bboxes[:, <span class="hljs-number">3</span>] - pred_bboxes[:, <span class="hljs-number">1</span>] + <span class="hljs-number">1.</span>) -<br>               inters)<br><br>        <span class="hljs-comment"># -----3----- iou, get max score and max iou index</span><br>        overlaps = inters / uni<br>        ovmax = np.<span class="hljs-built_in">max</span>(overlaps)<br>        jmax = np.argmax(overlaps)<br><br>    <span class="hljs-keyword">return</span> overlaps, ovmax, jmax<br><br><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:<br><br>    <span class="hljs-comment"># test1</span><br>    pred_bbox = np.array([<span class="hljs-number">50</span>, <span class="hljs-number">50</span>, <span class="hljs-number">90</span>, <span class="hljs-number">100</span>])   <span class="hljs-comment"># top-left: &lt;50, 50&gt;, bottom-down: &lt;90, 100&gt;, &lt;x-axis, y-axis&gt;</span><br>    gt_bbox = np.array([<span class="hljs-number">70</span>, <span class="hljs-number">80</span>, <span class="hljs-number">120</span>, <span class="hljs-number">150</span>])<br>    <span class="hljs-built_in">print</span> (get_IoU(pred_bbox, gt_bbox))<br>    <br>    <span class="hljs-comment"># test2</span><br>    pred_bboxes = np.array([[<span class="hljs-number">15</span>, <span class="hljs-number">18</span>, <span class="hljs-number">47</span>, <span class="hljs-number">60</span>],<br>                          [<span class="hljs-number">50</span>, <span class="hljs-number">50</span>, <span class="hljs-number">90</span>, <span class="hljs-number">100</span>],<br>                          [<span class="hljs-number">70</span>, <span class="hljs-number">80</span>, <span class="hljs-number">120</span>, <span class="hljs-number">145</span>],<br>                          [<span class="hljs-number">130</span>, <span class="hljs-number">160</span>, <span class="hljs-number">250</span>, <span class="hljs-number">280</span>],<br>                          [<span class="hljs-number">25.6</span>, <span class="hljs-number">66.1</span>, <span class="hljs-number">113.3</span>, <span class="hljs-number">147.8</span>]])<br>    gt_bbox = np.array([<span class="hljs-number">70</span>, <span class="hljs-number">80</span>, <span class="hljs-number">120</span>, <span class="hljs-number">150</span>])<br>    <span class="hljs-built_in">print</span> (get_max_IoU(pred_bboxes, gt_bbox))<br></code></pre></td></tr></table></figure>
+
+<p>其实计算bbox间IoU唯一的难点就在计算intersection，代码的实现很简单：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs python">ixmin = <span class="hljs-built_in">max</span>(pred_bbox[<span class="hljs-number">0</span>], gt_bbox[<span class="hljs-number">0</span>])<br>iymin = <span class="hljs-built_in">max</span>(pred_bbox[<span class="hljs-number">1</span>], gt_bbox[<span class="hljs-number">1</span>])<br>ixmax = <span class="hljs-built_in">min</span>(pred_bbox[<span class="hljs-number">2</span>], gt_bbox[<span class="hljs-number">2</span>])<br>iymax = <span class="hljs-built_in">min</span>(pred_bbox[<span class="hljs-number">3</span>], gt_bbox[<span class="hljs-number">3</span>])<br>iw = np.maximum(ixmax - ixmin + <span class="hljs-number">1.</span>, <span class="hljs-number">0.</span>)<br>ih = np.maximum(iymax - iymin + <span class="hljs-number">1.</span>, <span class="hljs-number">0.</span>)<br></code></pre></td></tr></table></figure>
+
+<p>比较厉害的就是，以上短短六行代码就可以囊括所有pred bbox与gt bbox间的关系，不管是bboxes间相交 &#x2F; 不相交，各种相交形式等等；我们在画图分析两个bbox间的关系时，会考虑各种情况，动手实践时会发现很复杂，是因为我们<strong>陷入了一种先入为主的思维</strong>，就是pred bbox与gt bbox有一个先后顺序，即我们认定了pred bbox为画图中的第一个bbox，gt bbox为第二个，这样在二者有不同位置关系时，就得考虑各种坐标判断情况，但若此时交换二者位置，其实并不影响我们计算IoU；</p>
+<p>以上六行代码也印证了这个观点，直接计算两个bbox的相交边框坐标即可，若不相交得到的结果中，必有ixmax &lt; ixmin、iymax - iymin其一成立，此时iw、ih就为0了；</p>
+<p>好了，以上就是IoU的计算，原理比较简单，具体分析比较复杂，实现却异常简单，但通过对问题的深入分析，也能加深我们对知识的理解；</p>
+<p>代码我传到github上了，比较简单：<a target="_blank" rel="noopener" href="https://github.com/humengdoudou/object_detection_mAP/blob/master/IoU_demo.py">IoU_demo.py</a></p>
+<p><strong>参考资料</strong></p>
+<ul>
+<li><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/47189358">目标检测番外篇(1)_IoU</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/u014061630/article/details/82818112">目标检测之 IoU</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/70768666">Detection基础模块之（一）IoU</a></p>
+</li>
+</ul>
+<h3 id="如何计算-mIoU？"><a href="#如何计算-mIoU？" class="headerlink" title="如何计算 mIoU？"></a>如何计算 mIoU？</h3><p>Mean Intersection over Union(MIoU，均交并比)，为语义分割的标准度量。其计算两个集合的交集和并集之比，在语义分割问题中，这两个集合为真实值（ground truth）和预测值（predicted segmentation）。这个比例可以变形为TP（交集）比上TP、FP、FN之和（并集）。在每个类上计算IoU，然后取平均。<br>$$<br>MIoU&#x3D;\frac{1}{k+1}\sum^{k}<em>{i&#x3D;0}{\frac{p</em>{ii}}{\sum_{j&#x3D;0}^{k}{p_{ij}+\sum_{j&#x3D;0}^{k}{p_{ji}-p_{ii}}}}}<br>$$<br>pij表示真实值为i，被预测为j的数量。</p>
+<p><strong>直观理解</strong></p>
+<p><img src="/2022/07/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/DLIB-0020.png" srcset="/img/loading.gif" lazyload></p>
+<p>红色圆代表真实值，黄色圆代表预测值。橙色部分为两圆交集部分。</p>
+<ul>
+<li>MPA（Mean Pixel Accuracy，均像素精度）：计算橙色与红色圆的比例；</li>
+<li>MIoU：计算两圆交集（橙色部分）与两圆并集（红色+橙色+黄色）之间的比例，理想情况下两圆重合，比例为1。</li>
+</ul>
+<p><strong>Tensorflow源码解析</strong></p>
+<p>Tensorflow主要用<code>tf.metrics.mean_iou</code>来计算mIoU，下面解析源码：</p>
+<p><strong>第一步：计算混淆矩阵</strong></p>
+<p>混淆矩阵例子</p>
+<p><img src="/2022/07/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/DLIB-0021.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><code class="hljs routeros"><span class="hljs-comment"># 主要代码</span><br>def confusion_matrix(labels, predictions, <span class="hljs-attribute">num_classes</span>=None, <span class="hljs-attribute">dtype</span>=dtypes.int32,<br>                     <span class="hljs-attribute">name</span>=None, <span class="hljs-attribute">weights</span>=None): <br>    # 例子：labels =     [0, 1, 2, 0, 3]<br>    #      predictions =[0, 1, 1, 3, 3]<br>    <span class="hljs-keyword">if</span> num_classes is None: # 不指定类别个数，就以labels或者predictions最大的指定,即4<br>      num_classes = math_ops.maximum(math_ops.reduce_max(predictions),<br>                                     math_ops.reduce_max(labels)) + 1 <br>    <span class="hljs-keyword">else</span>:<br>      num_classes_int64 = math_ops.cast(num_classes, dtypes.int64)<br>      labels = control_flow_ops.with_dependencies(<br>          [check_ops.assert_less(<br>              labels, num_classes_int64, <span class="hljs-attribute">message</span>=<span class="hljs-string">&#x27;`labels` out of bound&#x27;</span>)],<br>          labels)<br>      predictions = control_flow_ops.with_dependencies(<br>          [check_ops.assert_less(<br>              predictions, num_classes_int64,<br>              <span class="hljs-attribute">message</span>=<span class="hljs-string">&#x27;`predictions` out of bound&#x27;</span>)],<br>          predictions)<br><br>    <span class="hljs-keyword">if</span> weights is <span class="hljs-keyword">not</span> None:<br>      predictions.get_shape().assert_is_compatible_with(weights.get_shape())<br>      weights = math_ops.cast(weights, dtype)<br><br>    shape = array_ops.stack([num_classes, num_classes])<br>    indices = array_ops.stack([labels, predictions], <span class="hljs-attribute">axis</span>=1) <br>    # indices = [[0,0],[1,1],[2,1],[0,3],[3,3]]<br>    values = (array_ops.ones_like(predictions, dtype)<br>              <span class="hljs-keyword">if</span> weights is None <span class="hljs-keyword">else</span> weights)<br>    # 对应位置的values，若不指定，则全为1<br>    cm_sparse = sparse_tensor.SparseTensor(<br>        <span class="hljs-attribute">indices</span>=indices, <span class="hljs-attribute">values</span>=values, <span class="hljs-attribute">dense_shape</span>=math_ops.to_int64(shape))<br>    # 稀疏张量，指定indices位置为指定value，其他位置为0<br>    # 多次指定一个位置，value为多次相加的结果<br>    zero_matrix = array_ops.zeros(math_ops.to_int32(shape), dtype)<br><br>    return sparse_ops.sparse_add(zero_matrix, cm_sparse)<br></code></pre></td></tr></table></figure>
+
+<p>SparseTensor例子：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> tensorflow <span class="hljs-keyword">as</span> tf<br>a = tf.SparseTensor(indices=[[<span class="hljs-number">0</span>,<span class="hljs-number">0</span>], [<span class="hljs-number">1</span>,<span class="hljs-number">2</span>], [<span class="hljs-number">0</span>, <span class="hljs-number">0</span>]], values=[<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>], dense_shape=[<span class="hljs-number">3</span>, <span class="hljs-number">4</span>])<br>zero_m = array_ops.zeros(math_ops.to_int32([<span class="hljs-number">3</span>,<span class="hljs-number">4</span>]),dtype=tf.int32) <br>r = sparse_ops.sparse_add(zero_m, a)<br>sess = tf.Session(config=tf.ConfigProto(device_count=&#123;<span class="hljs-string">&#x27;cpu&#x27;</span>:<span class="hljs-number">0</span>&#125;))<br>sess.run(r) <br><span class="hljs-comment"># array([[2, 0, 0, 0],</span><br><span class="hljs-comment">#       [0, 0, 1, 0],</span><br><span class="hljs-comment">#       [0, 0, 0, 0]], dtype=int32)</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>第二步：计算mIoU</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">compute_mean_iou</span>(<span class="hljs-params">total_cm, name</span>):<br>  <span class="hljs-string">&quot;&quot;&quot;Compute the mean intersection-over-union via the confusion matrix.&quot;&quot;&quot;</span><br>  sum_over_row = math_ops.to_float(math_ops.reduce_sum(total_cm, <span class="hljs-number">0</span>))<br>  sum_over_col = math_ops.to_float(math_ops.reduce_sum(total_cm, <span class="hljs-number">1</span>))<br>  cm_diag = math_ops.to_float(array_ops.diag_part(total_cm)) <span class="hljs-comment"># 交集</span><br>  denominator = sum_over_row + sum_over_col - cm_diag <span class="hljs-comment"># 分母，即并集</span><br><br>  <span class="hljs-comment"># The mean is only computed over classes that appear in the</span><br>  <span class="hljs-comment"># label or prediction tensor. If the denominator is 0, we need to</span><br>  <span class="hljs-comment"># ignore the class.</span><br>  num_valid_entries = math_ops.reduce_sum(<br>      math_ops.cast(<br>          math_ops.not_equal(denominator, <span class="hljs-number">0</span>), dtype=dtypes.float32)) <span class="hljs-comment"># 类别个数</span><br><br>  <span class="hljs-comment"># If the value of the denominator is 0, set it to 1 to avoid</span><br>  <span class="hljs-comment"># zero division.</span><br>  denominator = array_ops.where(<br>      math_ops.greater(denominator, <span class="hljs-number">0</span>), denominator,<br>      array_ops.ones_like(denominator))<br>  iou = math_ops.div(cm_diag, denominator) <span class="hljs-comment"># 各类IoU</span><br><br>  <span class="hljs-comment"># If the number of valid entries is 0 (no classes) we return 0.</span><br>  result = array_ops.where(<br>      math_ops.greater(num_valid_entries, <span class="hljs-number">0</span>),<br>      math_ops.reduce_sum(iou, name=name) / num_valid_entries, <span class="hljs-number">0</span>) <span class="hljs-comment">#mIoU</span><br>  <span class="hljs-keyword">return</span> result<br></code></pre></td></tr></table></figure>
+
+<p>通过<code>tf.metrics.mean_iou</code>的API可以得到mIoU，但并没有把各类IoU释放出来，为了计算各类IoU，可以修改上面的代码，获取IoU中间结果，也可以用weight的方式变相计算。</p>
+<p>基本思路就是把只保留一类的IoU，其他类IoU置零，然后最后将<code>mIoU * num_classes</code>就可以了。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs python">tp_position = tf.equal(tf.to_int32(labels), tf.to_int32(predictions))<br>label_0_weight = tf.where((tp_position &amp; tf.not_equal(labels, <span class="hljs-number">0</span>)), tf.zeros_like(labels),<br>                                  tf.ones_like(labels))<br><span class="hljs-comment">## 混淆矩阵对角线上只保留一类非0，其他类都置0</span><br>metric_map[<span class="hljs-string">&#x27;IOU/class_0_iou&#x27;</span>] = tf.metrics.mean_iou(<br>            predictions, labels, dataset.num_classes, weights=label_0_weight)<br><span class="hljs-comment">## 结果是0类IoU/num_classes</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>Pytorch源码解析</strong></p>
+<p>Pytorch基本计算思路和上面是一样的，代码很简洁，就不过多介绍了。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">class</span> <span class="hljs-title class_">IOUMetric</span>:<br>    <span class="hljs-string">&quot;&quot;&quot;</span><br><span class="hljs-string">    Class to calculate mean-iou using fast_hist method</span><br><span class="hljs-string">    &quot;&quot;&quot;</span><br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, num_classes</span>):<br>        self.num_classes = num_classes<br>        self.hist = np.zeros((num_classes, num_classes))<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">_fast_hist</span>(<span class="hljs-params">self, label_pred, label_true</span>):<br>        mask = (label_true &gt;= <span class="hljs-number">0</span>) &amp; (label_true &lt; self.num_classes)<br>        hist = np.bincount(<br>            self.num_classes * label_true[mask].astype(<span class="hljs-built_in">int</span>) +<br>            label_pred[mask], minlength=self.num_classes ** <span class="hljs-number">2</span>).reshape(self.num_classes, self.num_classes)<br>        <span class="hljs-keyword">return</span> hist<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">add_batch</span>(<span class="hljs-params">self, predictions, gts</span>):<br>        <span class="hljs-keyword">for</span> lp, lt <span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>(predictions, gts):<br>            self.hist += self._fast_hist(lp.flatten(), lt.flatten())<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">evaluate</span>(<span class="hljs-params">self</span>):<br>        acc = np.diag(self.hist).<span class="hljs-built_in">sum</span>() / self.hist.<span class="hljs-built_in">sum</span>()<br>        acc_cls = np.diag(self.hist) / self.hist.<span class="hljs-built_in">sum</span>(axis=<span class="hljs-number">1</span>)<br>        acc_cls = np.nanmean(acc_cls)<br>        iu = np.diag(self.hist) / (self.hist.<span class="hljs-built_in">sum</span>(axis=<span class="hljs-number">1</span>) + self.hist.<span class="hljs-built_in">sum</span>(axis=<span class="hljs-number">0</span>) - np.diag(self.hist))<br>        mean_iu = np.nanmean(iu)<br>        freq = self.hist.<span class="hljs-built_in">sum</span>(axis=<span class="hljs-number">1</span>) / self.hist.<span class="hljs-built_in">sum</span>()<br>        fwavacc = (freq[freq &gt; <span class="hljs-number">0</span>] * iu[freq &gt; <span class="hljs-number">0</span>]).<span class="hljs-built_in">sum</span>()<br>        <span class="hljs-keyword">return</span> acc, acc_cls, iu, mean_iu, fwavacc<br></code></pre></td></tr></table></figure>
+
+<p><strong>Python 简版实现</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment">#RT:RightTop</span><br><span class="hljs-comment">#LB:LeftBottom</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">IOU</span>(<span class="hljs-params">rectangle A, rectangleB</span>):<br>    W = <span class="hljs-built_in">min</span>(A.RT.x, B.RT.x) - <span class="hljs-built_in">max</span>(A.LB.x, B.LB.x)<br>    H = <span class="hljs-built_in">min</span>(A.RT.y, B.RT.y) - <span class="hljs-built_in">max</span>(A.LB.y, B.LB.y)<br>    <span class="hljs-keyword">if</span> W &lt;= <span class="hljs-number">0</span> <span class="hljs-keyword">or</span> H &lt;= <span class="hljs-number">0</span>:<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>    SA = (A.RT.x - A.LB.x) * (A.RT.y - A.LB.y)<br>    SB = (B.RT.x - B.LB.x) * (B.RT.y - B.LB.y)<br>    cross = W * H<br>    <span class="hljs-keyword">return</span> cross/(SA + SB - cross)<br></code></pre></td></tr></table></figure>
+
+<p><strong>参考资料</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/rafaelpadilla/Object-Detection-Metrics">https://github.com/rafaelpadilla/Object-Detection-Metrics</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/jiongnima/article/details/84750819">mIoU（平均交并比）计算代码与逐行解析</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/wasidennis/AdaptSegNet/blob/master/compute_iou.py">https://github.com/wasidennis/AdaptSegNet/blob/master/compute_iou.py</a></li>
+<li><a target="_blank" rel="noopener" href="https://tianws.github.io/skill/2018/10/30/miou/">mIoU源码解析</a></li>
+</ul>
+<h2 id="mAP"><a href="#mAP" class="headerlink" title="mAP"></a>mAP</h2><p>mAP定义及相关概念</p>
+<ul>
+<li>mAP: mean Average Precision, 即各类别AP的平均值</li>
+<li>AP: PR曲线下面积，后文会详细讲解</li>
+<li>PR曲线: Precision-Recall曲线</li>
+<li>Precision: TP &#x2F; (TP + FP)</li>
+<li>Recall: TP &#x2F; (TP + FN)</li>
+<li>TP: IoU&gt;0.5的检测框数量（同一Ground Truth只计算一次）</li>
+<li>FP: IoU&lt;&#x3D;0.5的检测框，或者是检测到同一个GT的多余检测框的数量</li>
+<li>FN: 没有检测到的GT的数量</li>
+</ul>
+<p>本笔记介绍目标检测的一个基本概念：AP、mAP（mean Average Precision），做目标检测的同学想必对这个词语耳熟能详了，不管是Pascal VOC，还是COCO，甚至是人脸检测的wider face数据集，都使用到了AP、mAP的评估方式，那么AP、mAP到底是什么？如何计算的？</p>
+<p>如果希望一篇笔记讲明白目标检测中的mAP，感觉自己表达能力有限，可能搞不定，但如果希望一下能明白mAP含义的，可以参照引用链接；今天主要介绍下mAP的计算方式，假定前提为已经明白了precision、recall、tp、fp等概念，当然了，不明白也没关系，下一篇介绍Pascal VOC评估工具时会再详细介绍；</p>
+<p><strong>1 图像检索mAP</strong></p>
+<p>那么mAP到底是什么东西，如何计算？网上已经有了很多很多资料，但其实很多感觉都讲不清楚，我看到过一个在图像检索里面介绍得最好的示意图，我们先以图像检索中的mAP为例说明，其实目标检测中mAP与之几乎一样：</p>
+<p><img src="https://pic2.zhimg.com/80/v2-7e1dd60163df014ad08ea15388fedd51_hd.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>以上是图像检索中mAP的计算案例，简要说明下：</p>
+<p>1 查询图片1在图像库中检索相似图像，假设图像库中有五张相似图像，表示为图片1、…、图片5，排名不分先后；</p>
+<p>2 检索（过程略），返回了top-10图像，如上图第二行，橙色表示相似的图像，灰色为无关图像；</p>
+<p>3 接下来就是precision、recall的计算过程了，结合上图比较容易理解；</p>
+<p>以返回图片6的节点为例：</p>
+<p>top-6中，有3张图像确实为相似图像，另三张图像为无关图像，因此precision &#x3D; 3 &#x2F; 6；同时，总共五张相似图像，top-6检索出来了三张，因此recall &#x3D; 3 &#x2F; 5；</p>
+<p>4 然后计算AP，可以看右边的计算方式，可以发现是把列出来的查询率(precision)相加取平均，那么最关键的问题来了：为什么选择这几张图像的precision求平均？可惜图中并没有告诉我们原因；</p>
+<p>但其实不难，一句话就是：<strong>选择每个recall区间内对应的最高precision</strong>；</p>
+<p>举个栗子，以上图橙色检索案例为例，当我们只选择top-1作为检索结果返回（也即只返回一个检索结果）时，检索性能为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs text">top-1：recall = 1 / 5、precision = 1 / 1；# 以下类推；<br>top-2：recall = 1 / 5、precision = 1 / 2；<br>top-3：recall = 2 / 5、precision = 2 / 3；<br>top-4：recall = 2 / 5、precision = 2 / 4；<br>top-5：recall = 2 / 5、precision = 2 / 5；<br>top-6：recall = 3 / 5、precision = 3 / 6；<br>top-7：recall = 3 / 5、precision = 3 / 7；<br>top-8：recall = 3 / 5、precision = 3 / 8；<br>top-9：recall = 4 / 5、precision = 4 / 9；<br>top-10：recall = 5 / 5、precision = 5 / 10；<br></code></pre></td></tr></table></figure>
+
+<p>结合上面清单，先找找recall &#x3D; 1 &#x2F; 5区间下的最高precision，对应着precision &#x3D; 1 &#x2F; 1；</p>
+<p>同理，recall &#x3D; 2 &#x2F; 5区间下的最高precision，对应着precision &#x3D; 2 &#x2F; 3；</p>
+<p>recall &#x3D; 3 &#x2F; 5区间下的最高precision，对应着precision &#x3D; 3 &#x2F; 6；依次类推；</p>
+<p>这样AP &#x3D; (1 &#x2F; 1 + 2 &#x2F; 3 + 3 &#x2F; 6 + 4 &#x2F; 9 + 5 &#x2F; 10) &#x2F; 5；</p>
+<p>那么mAP是啥？计算所有检索图像返回的AP均值，对应上图就是橙、绿突图像计算AP求均值，对应红色框；</p>
+<p>这样mAP就计算完毕啦~~~是不是很容易理解？目标检测的mAP也是类似操作了；</p>
+<p><strong>2 目标检测中mAP计算流程</strong></p>
+<p>这里面我引用的是一篇博文，以下内容大多参考该博文，做了一些小修改；</p>
+<p>下面的例子也很容易理解，假设检测人脸吧，gt label表示1为人脸，0为bg，某张图像中共检出了20个pred bbox，id：1 ~ 20，并对应了confidence score，gt label也很容易获得，pred bbox与gt bbox算IoU，给定一个threshold，那么就<strong>知道该pred bbox是否为正确的预测结果了，就对应了其gt label</strong>；—- 其实下表不应该这么理解的，但我们还是先这么认为，忽略差异吧，先直捣黄龙，table 1：</p>
+<p><img src="https://pic3.zhimg.com/80/v2-f3d821d5661e41f6bbeddea2a7ce4972_hd.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>接下来对confidence score排序，得到table 2：</p>
+<p><img src="https://pic1.zhimg.com/80/v2-dbcb5bac2c1e97e151cfe756d5cc55e8_hd.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><em>这张表很重要，接下来的precision和recall都是依照这个表计算的﻿，那么这里的confidence score其实就和图像检索中的相似度关联上了，具体地，就是如第一节的图像检索中，虽然我们计算mAP没在乎其检索返回的先后顺序，但top1肯定是与待检索图像最相似的，对应的similarity score最高，对人脸检测而言，pred bbox的confidence score最高，也说明该bbox最有可能是人脸；</em></p>
+<p>然后计算precision和recall，这两个标准的定义如下：</p>
+<p><img src="https://pic1.zhimg.com/80/v2-6b533fc4b307c03992a07b08812a12e4_hd.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>上面的图看看就行，能理解就理解，不理解可以参照第一节图像检索的例子来理解；</p>
+<p>现以返回的top-5结果为例，如table 3：</p>
+<p><img src="https://pic1.zhimg.com/80/v2-30ee6334f6aa93f9d10889fa4a3d1a10_hd.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>在这个例子中，true positives就是指id &#x3D; 4、2的pred bbox，false positives就是指id &#x3D; 13、19、6的pred bbox。方框内圆圈外的元素（false negatives + true negatives）是相对于方框内的元素而言，在这个例子中，是指confidence score排在top-5之外的元素，即table 4：</p>
+<p><img src="https://pic1.zhimg.com/80/v2-e01ddf90fc9862e12ae5ab0d7416bc10_hd.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>其中，false negatives是指id &#x3D; 9、16、7、20的4个pred bbox，true negatives是指id &#x3D; 1、18、5、15、10、17、12、14、8、11、3的11个pred bbox；</p>
+<p>那么，这个例子中Precision &#x3D; 2 &#x2F; 5 &#x3D; 40%，意思是对于人脸检测而言，我们选定了5 pred bbox，其中正确的有2个，即准确率为40%；Recall &#x3D; 2 &#x2F; 6 &#x3D; 33%，意思是该图像中共有6个人脸，但是因为我们只召回了2个，所以召回率为33%；</p>
+<p>实际的目标检测任务中，我们通常不满足只通过top-5来衡量一个模型的好坏，而是需要知道从top-1到top-N（N是所有pred bbox，本文中为20）对应的precision和recall；显然随着我们选定的pred bbox越来也多，recall一定会越来越高，而precision整体上会呈下降趋势；把recall当成横坐标，precision当成纵坐标，即可得到常用的precision-recall曲线，以上例子的precision-recall曲线如fig 1：</p>
+<p><img src="https://pic3.zhimg.com/80/v2-46dbabe907e601580c065aa03ee1a89a_hd.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>以上图像如何计算的？可以参照第一节图像检索中的栗子，还是比较容易理解的吧；</p>
+<p>上面的每个红点，就相当于根据table 2，按照第一节中图像检索的方式计算出来的，也可以直接参照下面的table 5，自己心里算一算；</p>
+<p>那么按照<strong>选择每个recall区间内对应的最高precision</strong>的计算方案，各个recall区间内对应的top-precision，就刚好如fig 1中的绿色框位置，可以进一步结合table 5中的绿色框理解；</p>
+<p>好了，那么对这张图像而言，其AP &#x3D; （1 &#x2F; 1 + 2 &#x2F; 2 + 3 &#x2F; 6 + 4 &#x2F; 7 + 5 &#x2F; 11 + 6 &#x2F; 16）&#x2F; 6；这是针对单张图像而言，所有图像也类似方式计算，那么就可以根据所有图像上的pred bbox，采用同样的方式，就计算出了所有图像上人脸这个类的AP；因为人脸检测只有一个类，如Pascal VOC这种20类的，每类都可以计算出一个AP，那么AP_total &#x2F; 20，就是mAP啦；</p>
+<p>但是等等，有没有发现table 5中，计算方式好像跟我们讲的有一点不一样？我们继续看看；</p>
+<p><strong>3 Pascal VOC的两套mAP评估标准</strong></p>
+<p>Pascal VOC中对mAP的计算经历了两次迭代，一种是VOC07的计算标准，对应绿色框：</p>
+<p>首先设定一组阈值，T &#x3D; [0、0.1、0.2、…、1]，然后对于recall大于每一个阈值Ti（比如recall &gt; 0.3），我们都会在该recall区间内得到一个对应的最大precision，这样我们就计算出了11个precision；—– 这里与上两节介绍的概念是一样的，只不过上面recall的区间是参照gt label来划分的，这里是我们人为划分的11个节点；</p>
+<p>AP即为这11个precision的平均值，这种方法英文叫做11-point interpolated average precision；有了一个类的AP，所有类的AP均值即为mAP；</p>
+<p>另一种是VOC10的计算标准，对应白色框：</p>
+<p>新的计算方法假设N个pred bbox中有M个gt bbox，那么我们会得到M个recall节点（1 &#x2F; M、2 &#x2F; M、…、 M &#x2F; M），对于<strong>每个recall值 r，我们可以计算出对应（r’ &gt; r）的最大precision，然后对这M个precision值取平均即得到最后的AP值</strong>，计算方法如table 5：</p>
+<p><img src="https://pic4.zhimg.com/80/v2-525566cf829e30dcdc4156a3ada7303f_hd.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>从VOC07的绿框、VOC10的白框对比可知，差异主要在recall &#x3D; 3 &#x2F; 6下的precision，可以发现VOC07找的top-precision是在该recall区间段内的，但<strong>VOC10相当于是向后查找的，需确保该recall阈值以后的区间内，对应的是top-precision</strong>，可知4 &#x2F; 7 &gt; 3 &#x2F; 6，因此使用4 &#x2F; 7替换了3 &#x2F; 6，其他recall阈值下的操作方式类似；</p>
+<p><strong>那么代码的实操中，就得从按照recall阈值从后往前计算了，这样就可以一遍就梭哈出所有结果，如果按recall从前往后计算，就有很多重复性计算（不断地重复向后recall区间内查找top-precision），然后呢，就可以使用到动态规划的方式做了，理论结合实践啊有木有~~~</strong></p>
+<p>那么VOC10下，相应的Precision-Recall曲线如fig 2，可以发现这条曲线是单调递减的，剩下的AP计算方式就与VOC07相同了：</p>
+<p>这里还需要继续一点，<strong>VOC07是11点插值的AP方式，等于是卡了11个离散的点，划分10个区间来计算AP</strong>，但VOC10是是<strong>根据recall值变化的区间来计算的</strong>，在这个栗子里，recall只变化了6次，但如果recall变化很多次，如100次、1000次、9999次等，就可以认为是<strong>一种 “伪” 连续的方式计算</strong>了；</p>
+<p><img src="https://pic3.zhimg.com/80/v2-f86ce8588802e5cfee2d2f09303f98d2_hd.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><strong>总结</strong>：</p>
+<p>AP衡量的是模型在每个类别上的好坏，mAP衡量的是模型在所有类别上的好坏，得到AP后mAP的计算就变得很简单了，就是取所有类别AP的平均值。</p>
+<p><strong>3 代码</strong></p>
+<p>直接上代码吧，这个函数假设我们已经得到了排序好的precision、recall的list，对应上图fig 2，进一步可以参照第一节中的清单理解；</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># VOC-style mAP，分为两个计算方式，之所有两个计算方式，是因为2010年后VOC更新了评估方法，因此就有了07-metric和else...</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">voc_ap</span>(<span class="hljs-params">rec, prec, use_07_metric=<span class="hljs-literal">False</span></span>):<br>    <span class="hljs-string">&quot;&quot;&quot;</span><br><span class="hljs-string">    average precision calculations</span><br><span class="hljs-string">    [precision integrated to recall]</span><br><span class="hljs-string">    :param rec: recall list</span><br><span class="hljs-string">    :param prec: precision list</span><br><span class="hljs-string">    :param use_07_metric: 2007 metric is 11-recall-point based AP</span><br><span class="hljs-string">    :return: average precision</span><br><span class="hljs-string">    &quot;&quot;&quot;</span><br>    <span class="hljs-keyword">if</span> use_07_metric:<br>        <span class="hljs-comment"># 11 point metric</span><br>        ap = <span class="hljs-number">0.</span><br>        <span class="hljs-comment"># VOC07是11点插值的AP方式，等于是卡了11个离散的点，划分10个区间来计算AP</span><br>        <span class="hljs-keyword">for</span> t <span class="hljs-keyword">in</span> np.arange(<span class="hljs-number">0.</span>, <span class="hljs-number">1.1</span>, <span class="hljs-number">0.1</span>):<br>            <span class="hljs-keyword">if</span> np.<span class="hljs-built_in">sum</span>(rec &gt;= t) == <span class="hljs-number">0</span>:<br>                p = <span class="hljs-number">0</span>    <span class="hljs-comment"># recall卡的阈值到顶了，1.1</span><br>            <span class="hljs-keyword">else</span>:<br>                p = np.<span class="hljs-built_in">max</span>(prec[rec &gt;= t])   <span class="hljs-comment"># VOC07：选择每个recall区间内对应的最高precision的计算方案</span><br>            ap = ap + p / <span class="hljs-number">11.</span>    <span class="hljs-comment"># 11-recall-point based AP</span><br>    <span class="hljs-keyword">else</span>:<br>        <span class="hljs-comment"># correct AP calculation</span><br>        <span class="hljs-comment"># first append sentinel values at the end</span><br>        mrec = np.concatenate(([<span class="hljs-number">0.</span>], rec, [<span class="hljs-number">1.</span>]))<br>        mpre = np.concatenate(([<span class="hljs-number">0.</span>], prec, [<span class="hljs-number">0.</span>]))<br><br>        <span class="hljs-comment"># compute the precision envelope</span><br>        <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(mpre.size - <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, -<span class="hljs-number">1</span>):<br>            mpre[i - <span class="hljs-number">1</span>] = np.maximum(mpre[i - <span class="hljs-number">1</span>], mpre[i])    <span class="hljs-comment"># 这个是不是动态规划？从后往前找之前区间内的top-precision，多么优雅的代码呀~~~</span><br><br>        <span class="hljs-comment"># to calculate area under PR curve, look for points where X axis (recall) changes value</span><br>        <span class="hljs-comment"># 上面的英文，可以结合着fig 2的绿框理解，一目了然</span><br>        <span class="hljs-comment"># VOC10是是根据recall值变化的区间来计算的，如果recall变化很多次，就可以认为是一种 “伪” 连续的方式计算了，以下求的是recall的变化</span><br>        i = np.where(mrec[<span class="hljs-number">1</span>:] != mrec[:-<span class="hljs-number">1</span>])[<span class="hljs-number">0</span>]<br><br>        <span class="hljs-comment"># 计算AP，这个计算方式有点玄乎，是一个积分公式的简化，应该是对应的fig 2中红色曲线以下的面积，之前公式的推导我有看过，现在有点忘了，麻烦各位同学补充一下</span><br>        <span class="hljs-comment"># 现在理解了，不难，公式：sum (\Delta recall) * prec，其实结合fig2和下面的图，不就是算的积分么？如果recall划分得足够细，就可以当做连续数据，然后以下公式就是积分公式，算的precision、recall下面的面积了</span><br>        ap = np.<span class="hljs-built_in">sum</span>((mrec[i + <span class="hljs-number">1</span>] - mrec[i]) * mpre[i + <span class="hljs-number">1</span>])<br>    <span class="hljs-keyword">return</span> ap<br></code></pre></td></tr></table></figure>
+
+
+
+<p>通常VOC10标准下计算的mAP值会高于VOC07，原因如下，我就不详细介绍了：</p>
+<blockquote>
+<p><strong>Interpolated average precision</strong><br>Some authors choose an alternate approximation that is called the <em>interpolated average precision</em>. Often, they still call it average precision. Instead of using <em>P(k)</em>, the precision at a retrieval cutoff of <em>k</em> images, the interpolated average precision uses:</p>
+</blockquote>
+<p><img src="https://pic1.zhimg.com/80/v2-5bf4a2d116d55aa4685df9a10488fce0_hd.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<blockquote>
+<p>In other words, instead of using the precision that was actually observed at cutoff <em>k</em>, the interpolated average precision uses the maximum precision observed across all cutoffs with higher recall. The full equation for computing the interpolated average precision is:</p>
+</blockquote>
+<p><img src="https://pic3.zhimg.com/80/v2-bce2e48f2913849f4029404cfbde9616_hd.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<blockquote>
+<p>Visually, here’s how the interpolated average precision compares to the approximated average precision (to show a more interesting plot, this one isn’t from the earlier example):</p>
+</blockquote>
+<p><img src="https://pic1.zhimg.com/80/v2-7e00ce50249def8536978cc12a5cafe0_hd.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<blockquote>
+<p><em>The approximated average precision closely hugs the actually observed curve. The interpolated average precision over estimates the precision at many points and produces a higher average precision value than the approximated average precision.</em></p>
+<p>Further, there are variations on where to take the samples when computing the interpolated average precision. Some take samples at a fixed 11 points from 0 to 1: {0, 0.1, 0.2, …, 0.9, 1.0}. This is called the 11-point interpolated average precision. Others sample at every <em>k</em> where the recall changes.</p>
+</blockquote>
+<p><strong>参考资料</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/48992451">目标检测番外篇(2)_mAP</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/53405779">目标检测中的mAP是什么含义？</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/rafaelpadilla/Object-Detection-Metrics">Object-Detection-Metrics</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/67279824">【目标检测】VOC mAP</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/60834912">白话mAP</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/60319755">Detection基础模块之（二）mAP</a></li>
+</ul>
+<h3 id="如何计算-mAP？"><a href="#如何计算-mAP？" class="headerlink" title="如何计算 mAP？"></a>如何计算 mAP？</h3><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+</ul>
+<p><strong>参考资料</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/Cartucho/mAP">https://github.com/Cartucho/mAP</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/rafaelpadilla/Object-Detection-Metrics">https://github.com/rafaelpadilla/Object-Detection-Metrics</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/67279824">【目标检测】VOC mAP</a></li>
+</ul>
+<h2 id="目标检测度量标准"><a href="#目标检测度量标准" class="headerlink" title="目标检测度量标准"></a>目标检测度量标准</h2><ul>
+<li><p>mAP</p>
+</li>
+<li><p>FPS</p>
+</li>
+<li><p><input disabled="" type="checkbox"> 
+TODO</p>
+</li>
+</ul>
+<p><strong>参考资料</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/rafaelpadilla/Object-Detection-Metrics">Object-Detection-Metrics</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/70306015">目标检测的性能评价指标</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/60794316">【目标检测】基础知识：IoU、NMS、Bounding box regression</a></li>
+</ul>
+<h2 id="图像分割度量标准"><a href="#图像分割度量标准" class="headerlink" title="图像分割度量标准"></a>图像分割度量标准</h2><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+<li>PA</li>
+<li>MP</li>
+<li>mIoU</li>
+<li>FWIoU</li>
+</ul>
+<p><strong>参考资料</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1704.06857">《A Review on Deep Learning Techniques Applied to Semantic Segmentation》</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/38236530">图像语义分割准确率度量方法总结</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/u014593748/article/details/71698246">论文笔记 |　基于深度学习的图像语义分割技术概述之5.1度量标准</a></li>
+</ul>
+<h2 id="非极大值抑制NMS"><a href="#非极大值抑制NMS" class="headerlink" title="非极大值抑制NMS"></a>非极大值抑制NMS</h2><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+</ul>
+<h2 id="目标检测中的Anchor"><a href="#目标检测中的Anchor" class="headerlink" title="目标检测中的Anchor"></a>目标检测中的Anchor</h2><ul>
+<li><input disabled="" type="checkbox"> </li>
+</ul>
+<p><strong>参考资料</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/55824651">目标检测中的Anchor</a></li>
+</ul>
+<h2 id="原始图片中的ROI如何映射到到feature-map"><a href="#原始图片中的ROI如何映射到到feature-map" class="headerlink" title="原始图片中的ROI如何映射到到feature map?"></a>原始图片中的ROI如何映射到到feature map?</h2><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+</ul>
+<p><strong>参考资料</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/24780433">https://zhuanlan.zhihu.com/p/24780433</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.cnblogs.com/objectDetect/p/5947169.html">http://www.cnblogs.com/objectDetect/p/5947169.html</a></li>
+</ul>
+<h2 id="请问Faster-R-CNN和SSD-中为什么用smooth-l1-loss，和l2有什么区别？"><a href="#请问Faster-R-CNN和SSD-中为什么用smooth-l1-loss，和l2有什么区别？" class="headerlink" title="请问Faster R-CNN和SSD 中为什么用smooth l1 loss，和l2有什么区别？"></a>请问Faster R-CNN和SSD 中为什么用smooth l1 loss，和l2有什么区别？</h2><ul>
+<li><input disabled="" type="checkbox"> </li>
+</ul>
+<p><strong>参考资料</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/58200555/answer/621174180">请问faster rcnn和ssd 中为什么用smooth l1 loss，和l2有什么区别？</a></li>
+</ul>
+<h2 id="给定5个人脸关键点和5个对齐后的点，求怎么变换的？"><a href="#给定5个人脸关键点和5个对齐后的点，求怎么变换的？" class="headerlink" title="给定5个人脸关键点和5个对齐后的点，求怎么变换的？"></a>给定5个人脸关键点和5个对齐后的点，求怎么变换的？</h2><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+</ul>
+<h2 id="Bounding-boxes-回归原理-x2F-公式"><a href="#Bounding-boxes-回归原理-x2F-公式" class="headerlink" title="Bounding boxes 回归原理&#x2F;公式"></a>Bounding boxes 回归原理&#x2F;公式</h2><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+</ul>
+<h2 id="U-Net-和-FCN的区别"><a href="#U-Net-和-FCN的区别" class="headerlink" title="U-Net 和 FCN的区别"></a>U-Net 和 FCN的区别</h2><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+</ul>
+<h2 id="介绍KCF算法"><a href="#介绍KCF算法" class="headerlink" title="介绍KCF算法"></a>介绍KCF算法</h2><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+</ul>
+<h2 id="介绍MobileNet-SSD算法"><a href="#介绍MobileNet-SSD算法" class="headerlink" title="介绍MobileNet-SSD算法"></a>介绍MobileNet-SSD算法</h2><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+</ul>
+<h2 id="目标检测中的多尺度训练-x2F-测试？"><a href="#目标检测中的多尺度训练-x2F-测试？" class="headerlink" title="目标检测中的多尺度训练&#x2F;测试？"></a>目标检测中的多尺度训练&#x2F;测试？</h2><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+</ul>
+<p>多尺度训练对全卷积网络有效，一般设置几种不同尺度的图片，训练时每隔一定iterations随机选取一种尺度训练。这样训练出来的模型鲁棒性强，其可以接受任意大小的图片作为输入，使用尺度小的图片测试速度会快些，但准确度低，用尺度大的图片测试速度慢，但是准确度高。</p>
+<p><strong>参考资料</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/271781123">目标检测中的多尺度训练&#x2F;测试？</a></li>
+</ul>
+<h2 id="目标检测中的正负样本不平衡问题"><a href="#目标检测中的正负样本不平衡问题" class="headerlink" title="目标检测中的正负样本不平衡问题"></a>目标检测中的正负样本不平衡问题</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1604.03540">OHEM</a></li>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1708.02002">Focal Loss</a></li>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1811.05181">GHM</a></li>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1904.04821">PISA</a></li>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1904.06373">AP-loss</a></li>
+</ul>
+<p><strong>参考资料</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/55036597">样本贡献不均：Focal Loss和 Gradient Harmonizing Mechanism</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/62314673">被忽略的Focal Loss变种</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/63954517">Soft Sampling：探索更有效的采样策略</a>：介绍了<strong>Focal Loss</strong>、<strong>GHM</strong>和<strong>PISA</strong></li>
+</ul>
+<h2 id="目标检测中的类别漏检问题该怎么解决？"><a href="#目标检测中的类别漏检问题该怎么解决？" class="headerlink" title="目标检测中的类别漏检问题该怎么解决？"></a>目标检测中的类别漏检问题该怎么解决？</h2><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+</ul>
+<p><strong>参考资料</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/372208101">目标检测中的类别漏检问题该怎么解决？</a></li>
+</ul>
+<h2 id="RPN"><a href="#RPN" class="headerlink" title="RPN"></a>RPN</h2><h3 id="RPN-的损失函数"><a href="#RPN-的损失函数" class="headerlink" title="RPN 的损失函数"></a>RPN 的损失函数</h3><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+</ul>
+<h3 id="RPN中的anchor-box是怎么选取的？"><a href="#RPN中的anchor-box是怎么选取的？" class="headerlink" title="RPN中的anchor box是怎么选取的？"></a>RPN中的anchor box是怎么选取的？</h3><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+</ul>
+<h2 id="RoI-Pooling"><a href="#RoI-Pooling" class="headerlink" title="RoI Pooling"></a>RoI Pooling</h2><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+</ul>
+<p><strong>参考资料</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/59692298">你真的学会RoI Pooling了吗?</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/46927880">IoUNet(5)源码 RoIPooling(1)</a></li>
+</ul>
+<h2 id="RoI-Align"><a href="#RoI-Align" class="headerlink" title="RoI Align"></a>RoI Align</h2><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+</ul>
+<p><strong>参考资料</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/46928697">IoUNet(6) 源码 RoIAlign(1)</a></li>
+</ul>
+<h2 id="为什么深度学习中的图像分割要先编码再解码？"><a href="#为什么深度学习中的图像分割要先编码再解码？" class="headerlink" title="为什么深度学习中的图像分割要先编码再解码？"></a>为什么深度学习中的图像分割要先编码再解码？</h2><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+</ul>
+<p><strong>参考资料</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/322191738">为什么深度学习中的图像分割要先编码再解码？</a></li>
+</ul>
+<h2 id="NMS"><a href="#NMS" class="headerlink" title="NMS"></a>NMS</h2><p>本笔记介绍目标检测的另一个基本概念：NMS（non-maximum suppression），做目标检测的同学想必对这个词语耳熟能详了；</p>
+<p>在检测图像中的目标时，不可避免地会检出很多bboxes + cls scores，这些bbox之间有很多是冗余的，一个目标可能会被多个bboxes检出，如果所有bboxes都输出，就很影响体验和美观了（同一个目标输出100个bboxes，想想都后怕~~~），一种方案就是提升cls scores的阈值，减少bbox数量的输出；另一种方案就是使用NMS，将同一目标内的bboxes按照cls score + IoU阈值做筛选，剔除冗余地、低置信度的bbox；</p>
+<p>可能又会问了：为什么目标检测时，会有这么多无效、冗余检测框呢？这个。。。我的理解，是因为图像中没有目标尺度、位置的先验知识，为保证对目标的高召回，就必须使用滑窗、anchor &#x2F; default bbox密集采样的方式，尽管检测模型能对每个anchor &#x2F; default bbox做出 cls + reg，可以一定程度上剔除误检，但没有结合检出bbox的cls score + IoU阈值做筛选，而NMS就可以做到这一点；</p>
+<p><strong>1 NMS操作流程</strong></p>
+<p>NMS用于剔除图像中检出的冗余bbox，标准NMS的具体做法为：</p>
+<p><strong>step-1</strong>：将所有检出的output_bbox按cls score划分（如pascal voc分20个类，也即将output_bbox按照其对应的cls score划分为21个集合，1个bg类，只不过bg类就没必要做NMS而已）；</p>
+<p><strong>step-2</strong>：在每个集合内根据各个bbox的cls score做降序排列，得到一个降序的list_k；</p>
+<p><strong>step-3</strong>：从list_k中top1 cls score开始，计算该bbox_x与list中其他bbox_y的IoU，若IoU大于阈值T，则剔除该bbox_y，最终保留bbox_x，从list_k中取出；</p>
+<p><strong>step-4</strong>：选择list_k中top2 cls score(步骤3取出top 1 bbox_x后，原list_k中的top 2就相当于现list_k中的top 1了，但如果step-3中剔除的bbox_y刚好是原list_k中的top 2，就依次找top 3即可，理解这么个意思就行)，重复step-3中的迭代操作，直至list_k中所有bbox都完成筛选；</p>
+<p><strong>step-5</strong>：对每个集合的list_k，重复step-3、4中的迭代操作，直至所有list_k都完成筛选；</p>
+<p>以上操作写的有点绕，不过如果理解NMS操作流程的话，再结合下图，应该还是非常好理解的；</p>
+<p><img src="https://pic3.zhimg.com/80/v2-44f9d8d3f66e59e407a4edb5a02ea4ea_hd.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><strong>2 代码学习</strong></p>
+<p><strong>2.1 test_RFB.py</strong></p>
+<p>我选择了RFBNet里的代码介绍NMS，因为里面的流程基本上就是按照我说的操作进行了；</p>
+<p>先看看test_RFB.py中的片段，通过以下代码可以发现，其对应着step-1、step5操作，就是说NMS操作是逐类进行的，图像中检出的所有bboxes，按照 cls 做划分，再每个类的bbox进一步做NMS；</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs python">out = net(x)      <span class="hljs-comment"># forward pass，这里相当于将图像 x 输入RFBNet，得到了pred cls + reg</span><br>boxes, scores = detector.forward(out,priors) <span class="hljs-comment"># 结合priors，将pred reg（也即预测的offsets）解码成最终的pred bbox，如果理解anchor / default bbox操作流程，这个应该很好理解的；</span><br>boxes = boxes[<span class="hljs-number">0</span>]<br>scores=scores[<span class="hljs-number">0</span>]<br><br><span class="hljs-comment"># scale each detection back up to the image</span><br>boxes *= scale   <span class="hljs-comment"># （0，1）区间坐标的bbox做尺度反正则化</span><br>boxes = boxes.cpu().numpy()<br>scores = scores.cpu().numpy()<br><br><span class="hljs-keyword">for</span> j <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>, num_classes):      <span class="hljs-comment"># 对每个类 j 的pred bbox单独做NMS，为什么index从1开始？因为0是bg，做NMS无意义</span><br>    inds = np.where(scores[:, j] &gt; thresh)[<span class="hljs-number">0</span>]     <span class="hljs-comment"># 找到该类 j 下，所有cls score大于thresh的bbox，为什么选择大于thresh的bbox？因为score小于阈值的bbox，直接可以过滤掉，无需劳烦NMS</span><br>    <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(inds) == <span class="hljs-number">0</span>:    <span class="hljs-comment"># 没有满足条件的bbox，返回空，跳过；</span><br>        all_boxes[j][i] = np.empty([<span class="hljs-number">0</span>, <span class="hljs-number">5</span>], dtype=np.float32)<br>        <span class="hljs-keyword">continue</span><br>    c_bboxes = boxes[inds]<br>    c_scores = scores[inds, j]   <span class="hljs-comment"># 找到对应类 j 下的score即可</span><br>    c_dets = np.hstack((c_bboxes, c_scores[:, np.newaxis])).astype(<br>        np.float32, copy=<span class="hljs-literal">False</span>)   <span class="hljs-comment"># 将满足条件的bbox + cls score的bbox通过hstack完成合体</span><br><br>    keep = nms(c_dets, <span class="hljs-number">0.45</span>, force_cpu=args.cpu)    <span class="hljs-comment"># NMS，返回需保存的bbox index：keep</span><br>    c_dets = c_dets[keep, :]<br>    all_boxes[j][i] = c_dets     <span class="hljs-comment"># i 对应每张图像，j 对应图像中类别 j 的bbox清单</span><br></code></pre></td></tr></table></figure>
+
+<p>介绍以上代码处理流程，<strong>两个目的</strong>：</p>
+<p>1 test_RFB.py的处理流程非常清晰，也很方便我们的理解；</p>
+<p>2 for j in range(1, num_classes)操作表明了，NMS是逐类进行的，也即参与NMS的bbox都属于同一类；</p>
+<p><strong>2.2 py_cpu_nms.py</strong></p>
+<p>代码同样来自于FRBNet，结合注释可以发现引自Fast R-CNN；</p>
+<p>这个代码是最简版的nms，跟第一节中NMS处理流程一致，非常适合学习，可以作为baseline，我加了个简单的main函数做测试；</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># --------------------------------------------------------</span><br><span class="hljs-comment"># Fast R-CNN</span><br><span class="hljs-comment"># Copyright (c) 2015 Microsoft</span><br><span class="hljs-comment"># Licensed under The MIT License [see LICENSE for details]</span><br><span class="hljs-comment"># Written by Ross Girshick</span><br><span class="hljs-comment"># --------------------------------------------------------</span><br><br><span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">py_cpu_nms</span>(<span class="hljs-params">dets, thresh</span>):<br>    <span class="hljs-string">&quot;&quot;&quot;Pure Python NMS baseline.&quot;&quot;&quot;</span><br>    x1 = dets[:, <span class="hljs-number">0</span>]                     <span class="hljs-comment"># pred bbox top_x</span><br>    y1 = dets[:, <span class="hljs-number">1</span>]                     <span class="hljs-comment"># pred bbox top_y</span><br>    x2 = dets[:, <span class="hljs-number">2</span>]                     <span class="hljs-comment"># pred bbox bottom_x</span><br>    y2 = dets[:, <span class="hljs-number">3</span>]                     <span class="hljs-comment"># pred bbox bottom_y</span><br>    scores = dets[:, <span class="hljs-number">4</span>]              <span class="hljs-comment"># pred bbox cls score</span><br><br>    areas = (x2 - x1 + <span class="hljs-number">1</span>) * (y2 - y1 + <span class="hljs-number">1</span>)    <span class="hljs-comment"># pred bbox areas</span><br>    order = scores.argsort()[::-<span class="hljs-number">1</span>]              <span class="hljs-comment"># 对pred bbox按score做降序排序，对应step-2</span><br><br>    keep = []    <span class="hljs-comment"># NMS后，保留的pred bbox</span><br>    <span class="hljs-keyword">while</span> order.size &gt; <span class="hljs-number">0</span>:<br>        i = order[<span class="hljs-number">0</span>]          <span class="hljs-comment"># top-1 score bbox</span><br>        keep.append(i)   <span class="hljs-comment"># top-1 score的话，自然就保留了</span><br>        xx1 = np.maximum(x1[i], x1[order[<span class="hljs-number">1</span>:]])   <span class="hljs-comment"># top-1 bbox（score最大）与order中剩余bbox计算NMS</span><br>        yy1 = np.maximum(y1[i], y1[order[<span class="hljs-number">1</span>:]])<br>        xx2 = np.minimum(x2[i], x2[order[<span class="hljs-number">1</span>:]])<br>        yy2 = np.minimum(y2[i], y2[order[<span class="hljs-number">1</span>:]])<br><br>        w = np.maximum(<span class="hljs-number">0.0</span>, xx2 - xx1 + <span class="hljs-number">1</span>)<br>        h = np.maximum(<span class="hljs-number">0.0</span>, yy2 - yy1 + <span class="hljs-number">1</span>)<br>        inter = w * h<br>        ovr = inter / (areas[i] + areas[order[<span class="hljs-number">1</span>:]] - inter)      <span class="hljs-comment"># 无处不在的IoU计算~~~</span><br><br>        inds = np.where(ovr &lt;= thresh)[<span class="hljs-number">0</span>]     <span class="hljs-comment"># 这个操作可以对代码断点调试理解下，结合step-3，我们希望剔除所有与当前top-1 bbox IoU &gt; thresh的冗余bbox，那么保留下来的bbox，自然就是ovr &lt;= thresh的非冗余bbox，其inds保留下来，作进一步筛选</span><br>        order = order[inds + <span class="hljs-number">1</span>]   <span class="hljs-comment"># 保留有效bbox，就是这轮NMS未被抑制掉的幸运儿，为什么 + 1？因为ind = 0就是这轮NMS的top-1，剩余有效bbox在IoU计算中与top-1做的计算，inds对应回原数组，自然要做 +1 的映射，接下来就是step-4的循环</span><br><br>    <span class="hljs-keyword">return</span> keep    <span class="hljs-comment"># 最终NMS结果返回</span><br><br><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&#x27;__main__&#x27;</span>:<br>    dets = np.array([[<span class="hljs-number">100</span>,<span class="hljs-number">120</span>,<span class="hljs-number">170</span>,<span class="hljs-number">200</span>,<span class="hljs-number">0.98</span>],<br>                     [<span class="hljs-number">20</span>,<span class="hljs-number">40</span>,<span class="hljs-number">80</span>,<span class="hljs-number">90</span>,<span class="hljs-number">0.99</span>],<br>                     [<span class="hljs-number">20</span>,<span class="hljs-number">38</span>,<span class="hljs-number">82</span>,<span class="hljs-number">88</span>,<span class="hljs-number">0.96</span>],<br>                     [<span class="hljs-number">200</span>,<span class="hljs-number">380</span>,<span class="hljs-number">282</span>,<span class="hljs-number">488</span>,<span class="hljs-number">0.9</span>],<br>                     [<span class="hljs-number">19</span>,<span class="hljs-number">38</span>,<span class="hljs-number">75</span>,<span class="hljs-number">91</span>, <span class="hljs-number">0.8</span>]])<br><br>    py_cpu_nms(dets, <span class="hljs-number">0.5</span>)<br></code></pre></td></tr></table></figure>
+
+
+
+<p><strong>2.2 bbox_utils.py</strong></p>
+<p>同样是RFBNet中的nms代码，用pytorch实现的，其实和2.1小节中的NMS操作完全一致；</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># Original author: Francisco Massa:</span><br><span class="hljs-comment"># https://github.com/fmassa/object-detection.torch</span><br><span class="hljs-comment"># Ported to PyTorch by Max deGroot (02/01/2017)</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">nms</span>(<span class="hljs-params">boxes, scores, overlap=<span class="hljs-number">0.5</span>, top_k=<span class="hljs-number">200</span></span>):<br>    <span class="hljs-string">&quot;&quot;&quot;Apply non-maximum suppression at test time to avoid detecting too many</span><br><span class="hljs-string">    overlapping bounding boxes for a given object. ---- 这里面有一个细节，NMS仅用于测试阶段，为什么不用于训练阶段呢？可以评论留言下，我就不解释了，嘿嘿~~~</span><br><span class="hljs-string">    Args:</span><br><span class="hljs-string">        boxes: (tensor) The location preds for the img, Shape: [num_priors,4].</span><br><span class="hljs-string">        scores: (tensor) The class predscores for the img, Shape:[num_priors].</span><br><span class="hljs-string">        overlap: (float) The overlap thresh for suppressing unnecessary boxes.</span><br><span class="hljs-string">        top_k: (int) The Maximum number of box preds to consider.</span><br><span class="hljs-string">    Return:</span><br><span class="hljs-string">        The indices of the kept boxes with respect to num_priors.</span><br><span class="hljs-string">    &quot;&quot;&quot;</span><br><br>    keep = torch.Tensor(scores.size(<span class="hljs-number">0</span>)).fill_(<span class="hljs-number">0</span>).long()<br>    <span class="hljs-keyword">if</span> boxes.numel() == <span class="hljs-number">0</span>:<br>        <span class="hljs-keyword">return</span> keep<br>    x1 = boxes[:, <span class="hljs-number">0</span>]<br>    y1 = boxes[:, <span class="hljs-number">1</span>]<br>    x2 = boxes[:, <span class="hljs-number">2</span>]<br>    y2 = boxes[:, <span class="hljs-number">3</span>]<br>    area = torch.mul(x2 - x1, y2 - y1)    <span class="hljs-comment"># IoU初步准备</span><br>    v, idx = scores.sort(<span class="hljs-number">0</span>)  <span class="hljs-comment"># sort in ascending order，对应step-2，不过是升序操作，非降序</span><br>    <span class="hljs-comment"># I = I[v &gt;= 0.01]</span><br>    idx = idx[-top_k:]  <span class="hljs-comment"># indices of the top-k largest vals，依然是升序的结果</span><br>    xx1 = boxes.new()<br>    yy1 = boxes.new()<br>    xx2 = boxes.new()<br>    yy2 = boxes.new()<br>    w = boxes.new()<br>    h = boxes.new()<br><br>    <span class="hljs-comment"># keep = torch.Tensor()</span><br>    count = <span class="hljs-number">0</span><br>    <span class="hljs-keyword">while</span> idx.numel() &gt; <span class="hljs-number">0</span>:   <span class="hljs-comment"># 对应step-4，若所有pred bbox都处理完毕，就可以结束循环啦~</span><br>        i = idx[-<span class="hljs-number">1</span>]  <span class="hljs-comment"># index of current largest val，top-1 score box，因为是升序的，所有返回index = -1的最后一个元素即可</span><br>        <span class="hljs-comment"># keep.append(i)</span><br>        keep[count] = i<br>        count += <span class="hljs-number">1</span>    <span class="hljs-comment"># 不仅记数NMS保留的bbox个数，也作为index存储bbox</span><br>        <span class="hljs-keyword">if</span> idx.size(<span class="hljs-number">0</span>) == <span class="hljs-number">1</span>:<br>            <span class="hljs-keyword">break</span><br>        idx = idx[:-<span class="hljs-number">1</span>]  <span class="hljs-comment"># remove kept element from view，top-1已保存，不需要了~~~</span><br>        <span class="hljs-comment"># load bboxes of next highest vals</span><br>        torch.index_select(x1, <span class="hljs-number">0</span>, idx, out=xx1)<br>        torch.index_select(y1, <span class="hljs-number">0</span>, idx, out=yy1)<br>        torch.index_select(x2, <span class="hljs-number">0</span>, idx, out=xx2)<br>        torch.index_select(y2, <span class="hljs-number">0</span>, idx, out=yy2)<br>        <span class="hljs-comment"># store element-wise max with next highest score</span><br>        xx1 = torch.clamp(xx1, <span class="hljs-built_in">min</span>=x1[i])   <span class="hljs-comment"># 对应 np.maximum(x1[i], x1[order[1:]]) </span><br>        yy1 = torch.clamp(yy1, <span class="hljs-built_in">min</span>=y1[i])<br>        xx2 = torch.clamp(xx2, <span class="hljs-built_in">max</span>=x2[i])<br>        yy2 = torch.clamp(yy2, <span class="hljs-built_in">max</span>=y2[i])<br>        w.resize_as_(xx2)<br>        h.resize_as_(yy2)<br>        w = xx2 - xx1<br>        h = yy2 - yy1<br>        <span class="hljs-comment"># check sizes of xx1 and xx2.. after each iteration</span><br>        w = torch.clamp(w, <span class="hljs-built_in">min</span>=<span class="hljs-number">0.0</span>)    <span class="hljs-comment"># clamp函数可以去查查，类似max、mini的操作</span><br>        h = torch.clamp(h, <span class="hljs-built_in">min</span>=<span class="hljs-number">0.0</span>)<br>        inter = w*h<br>        <span class="hljs-comment"># IoU = i / (area(a) + area(b) - i)     </span><br>        <span class="hljs-comment"># 以下两步操作做了个优化，area已经计算好了，就可以直接根据idx读取结果了，area[i]同理，避免了不必要的冗余计算</span><br>        rem_areas = torch.index_select(area, <span class="hljs-number">0</span>, idx)  <span class="hljs-comment"># load remaining areas)</span><br>        union = (rem_areas - inter) + area[i]     <span class="hljs-comment"># 就是area(a) + area(b) - i</span><br>        IoU = inter/union  <span class="hljs-comment"># store result in iou，# IoU来啦~~~</span><br>        <span class="hljs-comment"># keep only elements with an IoU &lt;= overlap</span><br>        idx = idx[IoU.le(overlap)]   <span class="hljs-comment"># 这一轮NMS操作，IoU阈值小于overlap的idx，就是需要保留的bbox，其他的就直接忽略吧，并进行下一轮计算</span><br>    <span class="hljs-keyword">return</span> keep, count<br></code></pre></td></tr></table></figure>
+
+<p><strong>2.2 cpu_nms.pyx</strong></p>
+<p>同样在RGBNet项目中，下面就是优化后的NNS操作，以及soft-NMS操作，我就不细讲了~~~</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># --------------------------------------------------------</span><br><span class="hljs-comment"># Fast R-CNN</span><br><span class="hljs-comment"># Copyright (c) 2015 Microsoft</span><br><span class="hljs-comment"># Licensed under The MIT License [see LICENSE for details]</span><br><span class="hljs-comment"># Written by Ross Girshick</span><br><span class="hljs-comment"># --------------------------------------------------------</span><br><br><span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np<br>cimport numpy <span class="hljs-keyword">as</span> np<br><br>cdef inline np.float32_t <span class="hljs-built_in">max</span>(np.float32_t a, np.float32_t b):<br>    <span class="hljs-keyword">return</span> a <span class="hljs-keyword">if</span> a &gt;= b <span class="hljs-keyword">else</span> b<br><br>cdef inline np.float32_t <span class="hljs-built_in">min</span>(np.float32_t a, np.float32_t b):<br>    <span class="hljs-keyword">return</span> a <span class="hljs-keyword">if</span> a &lt;= b <span class="hljs-keyword">else</span> b<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">cpu_nms</span>(<span class="hljs-params">np.ndarray[np.float32_t, ndim=<span class="hljs-number">2</span>] dets, np.<span class="hljs-built_in">float</span> thresh</span>):<br>    cdef np.ndarray[np.float32_t, ndim=<span class="hljs-number">1</span>] x1 = dets[:, <span class="hljs-number">0</span>]<br>    cdef np.ndarray[np.float32_t, ndim=<span class="hljs-number">1</span>] y1 = dets[:, <span class="hljs-number">1</span>]<br>    cdef np.ndarray[np.float32_t, ndim=<span class="hljs-number">1</span>] x2 = dets[:, <span class="hljs-number">2</span>]<br>    cdef np.ndarray[np.float32_t, ndim=<span class="hljs-number">1</span>] y2 = dets[:, <span class="hljs-number">3</span>]<br>    cdef np.ndarray[np.float32_t, ndim=<span class="hljs-number">1</span>] scores = dets[:, <span class="hljs-number">4</span>]<br><br>    cdef np.ndarray[np.float32_t, ndim=<span class="hljs-number">1</span>] areas = (x2 - x1 + <span class="hljs-number">1</span>) * (y2 - y1 + <span class="hljs-number">1</span>)<br>    cdef np.ndarray[np.int_t, ndim=<span class="hljs-number">1</span>] order = scores.argsort()[::-<span class="hljs-number">1</span>]<br><br>    cdef <span class="hljs-built_in">int</span> ndets = dets.shape[<span class="hljs-number">0</span>]<br>    cdef np.ndarray[np.int_t, ndim=<span class="hljs-number">1</span>] suppressed = \<br>            np.zeros((ndets), dtype=np.<span class="hljs-built_in">int</span>)<br><br>    <span class="hljs-comment"># nominal indices</span><br>    cdef <span class="hljs-built_in">int</span> _i, _j<br>    <span class="hljs-comment"># sorted indices</span><br>    cdef <span class="hljs-built_in">int</span> i, j<br>    <span class="hljs-comment"># temp variables for box i&#x27;s (the box currently under consideration)</span><br>    cdef np.float32_t ix1, iy1, ix2, iy2, iarea<br>    <span class="hljs-comment"># variables for computing overlap with box j (lower scoring box)</span><br>    cdef np.float32_t xx1, yy1, xx2, yy2<br>    cdef np.float32_t w, h<br>    cdef np.float32_t inter, ovr<br><br>    keep = []<br>    <span class="hljs-keyword">for</span> _i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(ndets):<br>        i = order[_i]<br>        <span class="hljs-keyword">if</span> suppressed[i] == <span class="hljs-number">1</span>:<br>            <span class="hljs-keyword">continue</span><br>        keep.append(i)<br>        ix1 = x1[i]<br>        iy1 = y1[i]<br>        ix2 = x2[i]<br>        iy2 = y2[i]<br>        iarea = areas[i]<br>        <span class="hljs-keyword">for</span> _j <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(_i + <span class="hljs-number">1</span>, ndets):<br>            j = order[_j]<br>            <span class="hljs-keyword">if</span> suppressed[j] == <span class="hljs-number">1</span>:<br>                <span class="hljs-keyword">continue</span><br>            xx1 = <span class="hljs-built_in">max</span>(ix1, x1[j])<br>            yy1 = <span class="hljs-built_in">max</span>(iy1, y1[j])<br>            xx2 = <span class="hljs-built_in">min</span>(ix2, x2[j])<br>            yy2 = <span class="hljs-built_in">min</span>(iy2, y2[j])<br>            w = <span class="hljs-built_in">max</span>(<span class="hljs-number">0.0</span>, xx2 - xx1 + <span class="hljs-number">1</span>)<br>            h = <span class="hljs-built_in">max</span>(<span class="hljs-number">0.0</span>, yy2 - yy1 + <span class="hljs-number">1</span>)<br>            inter = w * h<br>            ovr = inter / (iarea + areas[j] - inter)<br>            <span class="hljs-keyword">if</span> ovr &gt;= thresh:<br>                suppressed[j] = <span class="hljs-number">1</span><br><br>    <span class="hljs-keyword">return</span> keep<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">cpu_soft_nms</span>(<span class="hljs-params">np.ndarray[<span class="hljs-built_in">float</span>, ndim=<span class="hljs-number">2</span>] boxes, <span class="hljs-built_in">float</span> sigma=<span class="hljs-number">0.5</span>, <span class="hljs-built_in">float</span> Nt=<span class="hljs-number">0.3</span>, <span class="hljs-built_in">float</span> threshold=<span class="hljs-number">0.001</span>, unsigned <span class="hljs-built_in">int</span> method=<span class="hljs-number">0</span></span>):<br>    cdef unsigned <span class="hljs-built_in">int</span> N = boxes.shape[<span class="hljs-number">0</span>]<br>    cdef <span class="hljs-built_in">float</span> iw, ih, box_area<br>    cdef <span class="hljs-built_in">float</span> ua<br>    cdef <span class="hljs-built_in">int</span> pos = <span class="hljs-number">0</span><br>    cdef <span class="hljs-built_in">float</span> maxscore = <span class="hljs-number">0</span><br>    cdef <span class="hljs-built_in">int</span> maxpos = <span class="hljs-number">0</span><br>    cdef <span class="hljs-built_in">float</span> x1,x2,y1,y2,tx1,tx2,ty1,ty2,ts,area,weight,ov<br><br>    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(N):<br>        maxscore = boxes[i, <span class="hljs-number">4</span>]<br>        maxpos = i<br><br>        tx1 = boxes[i,<span class="hljs-number">0</span>]<br>        ty1 = boxes[i,<span class="hljs-number">1</span>]<br>        tx2 = boxes[i,<span class="hljs-number">2</span>]<br>        ty2 = boxes[i,<span class="hljs-number">3</span>]<br>        ts = boxes[i,<span class="hljs-number">4</span>]<br><br>        pos = i + <span class="hljs-number">1</span><br>	<span class="hljs-comment"># get max box</span><br>        <span class="hljs-keyword">while</span> pos &lt; N:<br>            <span class="hljs-keyword">if</span> maxscore &lt; boxes[pos, <span class="hljs-number">4</span>]:<br>                maxscore = boxes[pos, <span class="hljs-number">4</span>]<br>                maxpos = pos<br>            pos = pos + <span class="hljs-number">1</span><br><br>	<span class="hljs-comment"># add max box as a detection </span><br>        boxes[i,<span class="hljs-number">0</span>] = boxes[maxpos,<span class="hljs-number">0</span>]<br>        boxes[i,<span class="hljs-number">1</span>] = boxes[maxpos,<span class="hljs-number">1</span>]<br>        boxes[i,<span class="hljs-number">2</span>] = boxes[maxpos,<span class="hljs-number">2</span>]<br>        boxes[i,<span class="hljs-number">3</span>] = boxes[maxpos,<span class="hljs-number">3</span>]<br>        boxes[i,<span class="hljs-number">4</span>] = boxes[maxpos,<span class="hljs-number">4</span>]<br><br>	<span class="hljs-comment"># swap ith box with position of max box</span><br>        boxes[maxpos,<span class="hljs-number">0</span>] = tx1<br>        boxes[maxpos,<span class="hljs-number">1</span>] = ty1<br>        boxes[maxpos,<span class="hljs-number">2</span>] = tx2<br>        boxes[maxpos,<span class="hljs-number">3</span>] = ty2<br>        boxes[maxpos,<span class="hljs-number">4</span>] = ts<br><br>        tx1 = boxes[i,<span class="hljs-number">0</span>]<br>        ty1 = boxes[i,<span class="hljs-number">1</span>]<br>        tx2 = boxes[i,<span class="hljs-number">2</span>]<br>        ty2 = boxes[i,<span class="hljs-number">3</span>]<br>        ts = boxes[i,<span class="hljs-number">4</span>]<br><br>        pos = i + <span class="hljs-number">1</span><br>	<span class="hljs-comment"># NMS iterations, note that N changes if detection boxes fall below threshold</span><br>        <span class="hljs-keyword">while</span> pos &lt; N:<br>            x1 = boxes[pos, <span class="hljs-number">0</span>]<br>            y1 = boxes[pos, <span class="hljs-number">1</span>]<br>            x2 = boxes[pos, <span class="hljs-number">2</span>]<br>            y2 = boxes[pos, <span class="hljs-number">3</span>]<br>            s = boxes[pos, <span class="hljs-number">4</span>]<br><br>            area = (x2 - x1 + <span class="hljs-number">1</span>) * (y2 - y1 + <span class="hljs-number">1</span>)<br>            iw = (<span class="hljs-built_in">min</span>(tx2, x2) - <span class="hljs-built_in">max</span>(tx1, x1) + <span class="hljs-number">1</span>)<br>            <span class="hljs-keyword">if</span> iw &gt; <span class="hljs-number">0</span>:<br>                ih = (<span class="hljs-built_in">min</span>(ty2, y2) - <span class="hljs-built_in">max</span>(ty1, y1) + <span class="hljs-number">1</span>)<br>                <span class="hljs-keyword">if</span> ih &gt; <span class="hljs-number">0</span>:<br>                    ua = <span class="hljs-built_in">float</span>((tx2 - tx1 + <span class="hljs-number">1</span>) * (ty2 - ty1 + <span class="hljs-number">1</span>) + area - iw * ih)<br>                    ov = iw * ih / ua <span class="hljs-comment">#iou between max box and detection box</span><br><br>                    <span class="hljs-keyword">if</span> method == <span class="hljs-number">1</span>: <span class="hljs-comment"># linear</span><br>                        <span class="hljs-keyword">if</span> ov &gt; Nt: <br>                            weight = <span class="hljs-number">1</span> - ov<br>                        <span class="hljs-keyword">else</span>:<br>                            weight = <span class="hljs-number">1</span><br>                    <span class="hljs-keyword">elif</span> method == <span class="hljs-number">2</span>: <span class="hljs-comment"># gaussian</span><br>                        weight = np.exp(-(ov * ov)/sigma)<br>                    <span class="hljs-keyword">else</span>: <span class="hljs-comment"># original NMS</span><br>                        <span class="hljs-keyword">if</span> ov &gt; Nt: <br>                            weight = <span class="hljs-number">0</span><br>                        <span class="hljs-keyword">else</span>:<br>                            weight = <span class="hljs-number">1</span><br><br>                    boxes[pos, <span class="hljs-number">4</span>] = weight*boxes[pos, <span class="hljs-number">4</span>]<br>		    <br>		    <span class="hljs-comment"># if box score falls below threshold, discard the box by swapping with last box</span><br>		    <span class="hljs-comment"># update N</span><br>                    <span class="hljs-keyword">if</span> boxes[pos, <span class="hljs-number">4</span>] &lt; threshold:<br>                        boxes[pos,<span class="hljs-number">0</span>] = boxes[N-<span class="hljs-number">1</span>, <span class="hljs-number">0</span>]<br>                        boxes[pos,<span class="hljs-number">1</span>] = boxes[N-<span class="hljs-number">1</span>, <span class="hljs-number">1</span>]<br>                        boxes[pos,<span class="hljs-number">2</span>] = boxes[N-<span class="hljs-number">1</span>, <span class="hljs-number">2</span>]<br>                        boxes[pos,<span class="hljs-number">3</span>] = boxes[N-<span class="hljs-number">1</span>, <span class="hljs-number">3</span>]<br>                        boxes[pos,<span class="hljs-number">4</span>] = boxes[N-<span class="hljs-number">1</span>, <span class="hljs-number">4</span>]<br>                        N = N - <span class="hljs-number">1</span><br>                        pos = pos - <span class="hljs-number">1</span><br><br>            pos = pos + <span class="hljs-number">1</span><br><br>    keep = [i <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(N)]<br>    <span class="hljs-keyword">return</span> keep<br></code></pre></td></tr></table></figure>
+
+<p><strong>参考代码：</strong></p>
+<p><a href="https://link.zhihu.com/?target=https://github.com/ruinmessi/RFBNet">https://github.com/ruinmessi/RFBNet</a>：RFBNet</p>
+<p><a href="https://link.zhihu.com/?target=https://github.com/rbgirshick/py-faster-rcnn">https://github.com/rbgirshick/py-faster-rcnn</a>：学习一百遍都不为过的faster rcnn</p>
+<p>NMS_demo.py：<a target="_blank" rel="noopener" href="https://github.com/humengdoudou/object_detection_mAP/blob/master/NMS_demo.py">https://github.com/humengdoudou/object_detection_mAP/blob/master/NMS_demo.py</a></p>
+<p><strong>参考资料</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/49481833">目标检测番外篇(3)_NMS</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/64423753">浅谈NMS的多种实现</a></li>
+</ul>
+<h2 id="NMS及其变体"><a href="#NMS及其变体" class="headerlink" title="NMS及其变体"></a>NMS及其变体</h2><ul>
+<li><p>NMS</p>
+</li>
+<li><p>Soft-NMS</p>
+</li>
+<li><p>Softer-NMS</p>
+</li>
+<li><p>IoU-guided NMS</p>
+</li>
+<li><p>ConvNMS</p>
+</li>
+<li><p>Pure NMS</p>
+</li>
+<li><p>Yes-Net</p>
+</li>
+<li><p>LNMS</p>
+</li>
+<li><p>INMS</p>
+</li>
+<li><p>Polygon NMS</p>
+</li>
+<li><p>MNMS</p>
+</li>
+</ul>
+<p><strong>参考资料</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/70771042">Detection基础模块之（三）NMS及变体</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/28129034">NMS也能玩出花样来……</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/50126479">目标检测之非极大值抑制(NMS)各种变体</a></li>
+</ul>
+<h2 id="R-CNN-系列"><a href="#R-CNN-系列" class="headerlink" title="R-CNN 系列"></a>R-CNN 系列</h2><h3 id="R-CNN"><a href="#R-CNN" class="headerlink" title="R-CNN"></a>R-CNN</h3><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+</ul>
+<h3 id="Fast-R-CNN"><a href="#Fast-R-CNN" class="headerlink" title="Fast R-CNN"></a>Fast R-CNN</h3><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+</ul>
+<h3 id="Faster-R-CNN"><a href="#Faster-R-CNN" class="headerlink" title="Faster R-CNN"></a>Faster R-CNN</h3><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+</ul>
+<h4 id="Faster-R-CNN-为什么用smooth-l1-loss，和l2有什么区别？"><a href="#Faster-R-CNN-为什么用smooth-l1-loss，和l2有什么区别？" class="headerlink" title="Faster R-CNN 为什么用smooth l1 loss，和l2有什么区别？"></a>Faster R-CNN 为什么用smooth l1 loss，和l2有什么区别？</h4><h2 id="SSD-算法"><a href="#SSD-算法" class="headerlink" title="SSD 算法"></a>SSD 算法</h2><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+</ul>
+<p><strong>参考资料</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/65484308">SSD 论文原文完整翻译</a></li>
+</ul>
+<h2 id="YOLO系列（V1-V5）"><a href="#YOLO系列（V1-V5）" class="headerlink" title="YOLO系列（V1-V5）"></a>YOLO系列（V1-V5）</h2><h3 id="YOLOV1"><a href="#YOLOV1" class="headerlink" title="YOLOV1"></a>YOLOV1</h3><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+</ul>
+<h3 id="YOLOv2算法"><a href="#YOLOv2算法" class="headerlink" title="YOLOv2算法"></a>YOLOv2算法</h3><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+</ul>
+<h3 id="YOLOv3算法"><a href="#YOLOv3算法" class="headerlink" title="YOLOv3算法"></a>YOLOv3算法</h3><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+</ul>
+<h3 id="YOLOv4算法"><a href="#YOLOv4算法" class="headerlink" title="YOLOv4算法"></a>YOLOv4算法</h3><p><strong>参考资料</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/138824273">目标检测面试指南之YOLOV4</a></li>
+</ul>
+<h3 id="YOLOv5算法"><a href="#YOLOv5算法" class="headerlink" title="YOLOv5算法"></a>YOLOv5算法</h3><h3 id="YOLOv1-YOLOv5的发展"><a href="#YOLOv1-YOLOv5的发展" class="headerlink" title="YOLOv1-YOLOv5的发展"></a>YOLOv1-YOLOv5的发展</h3><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+</ul>
+<h3 id="YOLOv2和YOLOv3的损失函数区别"><a href="#YOLOv2和YOLOv3的损失函数区别" class="headerlink" title="YOLOv2和YOLOv3的损失函数区别"></a>YOLOv2和YOLOv3的损失函数区别</h3><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+</ul>
+<p><strong>参考资料</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/hancoder/article/details/87994678">YOLOv1，YOLOv2，YOLOv3解读</a></li>
+</ul>
+<h3 id=""><a href="#" class="headerlink" title=""></a></h3><h2 id="RetinaNet（Focal-loss）"><a href="#RetinaNet（Focal-loss）" class="headerlink" title="RetinaNet（Focal loss）"></a>RetinaNet（Focal loss）</h2><p>《Focal Loss for Dense Object Detection》</p>
+<ul>
+<li>arXiv：<a target="_blank" rel="noopener" href="https://arxiv.org/abs/1708.02002">https://arxiv.org/abs/1708.02002</a></li>
+</ul>
+<p>清华大学孔涛博士在知乎上这么写道：</p>
+<p>目标的检测和定位中一个很困难的问题是，如何从数以万计的候选窗口中挑选包含目标物的物体。只有候选窗口足够多，才能保证模型的 Recall。</p>
+<p>目前，目标检测框架主要有两种：</p>
+<p>一种是 one-stage ，例如 YOLO、SSD 等，这一类方法速度很快，但识别精度没有 two-stage 的高，其中一个很重要的原因是，利用一个分类器很难既把负样本抑制掉，又把目标分类好。</p>
+<p>另外一种目标检测框架是 two-stage ，以 Faster RCNN 为代表，这一类方法识别准确度和定位精度都很高，但存在着计算效率低，资源占用大的问题。</p>
+<p>Focal Loss 从优化函数的角度上来解决这个问题，实验结果非常 solid，很赞的工作。</p>
+<p>何恺明团队提出了用 Focal Loss 函数来训练。</p>
+<p>因为，他在训练过程中发现，类别失衡是影响 one-stage 检测器准确度的主要原因。那么，如果能将“类别失衡”这个因素解决掉，one-stage 不就能达到比较高的识别精度了吗？</p>
+<p>于是在研究中，何恺明团队采用 Focal Loss 函数来消除“类别失衡”这个主要障碍。</p>
+<p>结果怎样呢？</p>
+<p>为了评估该损失的有效性，该团队设计并训练了一个简单的密集目标检测器—RetinaNet。试验结果证明，当使用 Focal Loss 训练时，RetinaNet 不仅能赶上 one-stage 检测器的检测速度，而且还在准确度上超越了当前所有最先进的 two-stage 检测器。</p>
+<p><strong>参考</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/63581984">如何评价Kaiming的Focal Loss for Dense Object Detection？</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/28442066">首发 | 何恺明团队提出 Focal Loss，目标检测精度高达39.1AP，打破现有记录</a></li>
+</ul>
+<h2 id="FPN-特征金字塔网络"><a href="#FPN-特征金字塔网络" class="headerlink" title="FPN 特征金字塔网络"></a>FPN 特征金字塔网络</h2><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+</ul>
+<h2 id="Faster-R-CNN的RPN网络"><a href="#Faster-R-CNN的RPN网络" class="headerlink" title="Faster R-CNN的RPN网络"></a>Faster R-CNN的RPN网络</h2><p>RPN结构说明： </p>
+<ol>
+<li><p>从基础网络提取的第五卷积层特征进入RPN后分为两个分支，其中一个分支进行针对feature map（上图conv-5-3共有512个feature-map）的每一个位置预测共（9*4&#x3D;36）个参数，其中9代表的是每一个位置预设的9种形状的anchor-box，4对应的是每一个anchor-box的预测值（该预测值表示的是预设anchor-box到ground-truth-box之间的变换参数），上图中指向rpn-bbox-pred层的箭头上面的数字36即是代表了上述的36个参数，所以rpn-bbox-pred层的feature-map数量是36，而每一张feature-map的形状（大小）实际上跟conv5-3一模一样的；</p>
+</li>
+<li><p>另一分支预测该anchor-box所框定的区域属于前景和背景的概率（网上很对博客说的是，指代该点属于前景背景的概率，那样是不对的，不然怎么会有18个feature-map输出呢？否则2个就足够了），前景背景的真值给定是根据当前像素（anchor-box中心）是否在ground-truth-box内；</p>
+</li>
+<li><p>上图RPN-data(python)运算框内所进行的操作是读取图像信息（原始宽高），groun-truth boxes的信息（bounding-box的位置，形状，类别）等，作好相应的转换，输入到下面的层当中。</p>
+</li>
+<li><p>要注意的是RPN内部有两个loss层，一个是BBox的loss,该loss通过减小ground-truth-box与预测的anchor-box之间的差异来进行参数学习，从而使RPN网络中的权重能够学习到预测box的能力。实现细节是每一个位置的anchor-box与ground-truth里面的box进行比较，选择IOU最大的一个作为该anchor-box的真值，若没有，则将之class设为背景（概率值0，否则1），这样背景的anchor-box的损失函数中每个box乘以其class的概率后就不会对bbox的损失函数造成影响。另一个loss是class-loss,该处的loss是指代的前景背景并不是实际的框中物体类别，它的存在可以使得在最后生成roi时能快速过滤掉预测值是背景的box。也可实现bbox的预测函数不受影响，使得anchor-box能（专注于）正确的学习前景框的预测，正如前所述。所以，综合来讲，整个RPN的作用就是替代了以前的selective-search方法，因为网络内的运算都是可GPU加速的，所以一下子提升了ROI生成的速度。可以将RPN理解为一个预测前景背景，并将前景框定的一个网络，并进行单独的训练，实际上论文里面就有一个分阶段训练的训练策略，实际上就是这个原因。</p>
+</li>
+<li><p>最后经过非极大值抑制，RPN层产生的输出是一系列的ROI-data，它通过ROI的相对映射关系，将conv5-3中的特征已经存入ROI-data中，以供后面的分类网使用。</p>
+</li>
+</ol>
+<p>另外两个loss层的说明：<br>也许你注意到了，最后还有两个loss层，这里的class-loss指代的不再是前景背景loss，而是真正的类别loss了，这个应该就很好理解了。而bbox-loss则是因为rpn提取的只是前景背景的预测，往往很粗糙，这里其实是通过ROI-pooling后加上两层全连接实现更精细的box修正（这里其实是我猜的）。<br>ROI-Pooing的作用是为了将不同大小的Roi映射（重采样）成统一的大小输入到全连接层去。</p>
+<p>以上。</p>
+<p><strong>参考资料</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/mllearnertj/article/details/53709766">Faster-Rcnn中RPN（Region Proposal Network）的理解</a></li>
+</ul>
+<h2 id="ROI-Pooling、ROI-Align和ROI-Warping对比"><a href="#ROI-Pooling、ROI-Align和ROI-Warping对比" class="headerlink" title="ROI Pooling、ROI Align和ROI Warping对比"></a>ROI Pooling、ROI Align和ROI Warping对比</h2><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+</ul>
+<p><strong>参考资料</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/lanyuxuan100/article/details/71124596">Mask-RCNN中的ROIAlign, ROIPooling及ROIWarp对比</a></li>
+</ul>
+<h2 id="DeepLab系列（V1-V3-）"><a href="#DeepLab系列（V1-V3-）" class="headerlink" title="DeepLab系列（V1-V3+）"></a>DeepLab系列（V1-V3+）</h2><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+</ul>
+<h2 id="U-Net神经网络为什么会在医学图像分割表现好？"><a href="#U-Net神经网络为什么会在医学图像分割表现好？" class="headerlink" title="U-Net神经网络为什么会在医学图像分割表现好？"></a>U-Net神经网络为什么会在医学图像分割表现好？</h2><p><strong>参考资料</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/269914775">U-Net神经网络为什么会在医学图像分割表现好？</a></li>
+</ul>
+<h2 id="Scene-Parsing和Semantic-Segmentation有什么不同"><a href="#Scene-Parsing和Semantic-Segmentation有什么不同" class="headerlink" title="Scene Parsing和Semantic Segmentation有什么不同?"></a>Scene Parsing和Semantic Segmentation有什么不同?</h2><p><strong>参考资料</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/57726518">Scene Parsing和Semantic Segmentation有什么不同?</a></li>
+</ul>
+<h2 id="CenterNet"><a href="#CenterNet" class="headerlink" title="CenterNet"></a>CenterNet</h2><p>CornerNet介绍</p>
+<h3 id="CornerPooling是怎么做的？"><a href="#CornerPooling是怎么做的？" class="headerlink" title="CornerPooling是怎么做的？"></a>CornerPooling是怎么做的？</h3><ul>
+<li><input disabled="" type="checkbox"> TODO</li>
+</ul>
+<h1 id="Transformer"><a href="#Transformer" class="headerlink" title="Transformer"></a>Transformer</h1><p><strong>参考资料</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/438625445">Transformer面试题总结101道题</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/363466672">transformer面试题的简单回答</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/148656446">史上最全Transformer面试题系列（一）：灵魂20问帮你彻底搞定Transformer-干货！</a></li>
+</ul>
+<h2 id="TODO"><a href="#TODO" class="headerlink" title="TODO"></a>TODO</h2><ul>
+<li><input disabled="" type="checkbox"> 目标检测方向</li>
+<li><input disabled="" type="checkbox"> 图像分割方向</li>
+<li><input disabled="" type="checkbox"> 目标跟踪方向</li>
+<li><input disabled="" type="checkbox"> 人脸（检测&amp;识别&amp;关键点）</li>
+<li><input disabled="" type="checkbox"> OCR方向</li>
+<li><input disabled="" type="checkbox"> SLAM方向</li>
+<li><input disabled="" type="checkbox"> 超分辨率</li>
+<li><input disabled="" type="checkbox"> 医疗影响方向</li>
+<li><input disabled="" type="checkbox"> Re-ID</li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/" class="category-chain-item">计算机视觉</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/">#深度学习</a>
+      
+        <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/">#计算机视觉</a>
+      
+        <a href="/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/">#目标检测</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>计算机视觉</div>
+      <div>http://example.com/2022/07/19/计算机视觉/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>John Doe</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2022年7月19日</div>
+        </div>
+      
+      
+      <div class="license-meta-item">
+        <div>许可协议</div>
+        <div>
+          
+            
+            
+              <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+              <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                <i class="iconfont icon-by"></i>
+              </span>
+              </a>
+            
+          
+        </div>
+      </div>
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2022/07/19/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" title="机器学习">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">机器学习</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/07/19/%E4%BC%A0%E7%BB%9F%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/" title="传统图像处理">
+                        <span class="hidden-mobile">传统图像处理</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      headingSelector : CONFIG.toc.headingSelector || 'h1,h2,h3,h4,h5,h6',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      collapseDepth   : CONFIG.toc.collapseDepth || 0,
+      scrollSmooth    : true,
+      headingsOffset  : -boardTop
+    });
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.10/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
