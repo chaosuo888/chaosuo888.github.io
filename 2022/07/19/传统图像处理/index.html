@@ -28,7 +28,7 @@
 <meta property="og:image" content="http://example.com/img/DLIB-0026.png">
 <meta property="og:image" content="http://example.com/img/DLIB-0027.png">
 <meta property="article:published_time" content="2022-07-19T12:24:27.000Z">
-<meta property="article:modified_time" content="2022-07-19T13:05:08.467Z">
+<meta property="article:modified_time" content="2022-07-19T13:13:57.290Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="图像处理">
 <meta name="twitter:card" content="summary_large_image">
@@ -301,7 +301,7 @@
 <p>注：σ的大小决定了高斯函数的宽度。</p>
 <p><strong>3 高斯核</strong></p>
 <p>理论上，高斯分布在所有定义域上都有非负值，这就需要一个无限大的卷积核。实际上，仅需要取均值周围3倍标准差内的值，以外部份直接去掉即可。<br> <strong>高斯滤波的重要两步就是先找到高斯模板然后再进行卷积</strong>，模板（mask在查阅中有的地方也称作掩膜或者是高斯核）。所以这个时候需要知道它怎么来？又怎么用？<br> 举个栗子：<br> 假定中心点的坐标是（0,0），那么取距离它最近的8个点坐标，为了计算，需要设定σ的值。假定σ&#x3D;1.5，则模糊半径为1的高斯模板就算如下</p>
-<p><img src="/img/DLIB-0025.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/./img/DLIB-0025.png" srcset="/img/loading.gif" lazyload></p>
 <p> 这个时候我们我们还要确保这九个点加起来为1（这个是高斯模板的特性），这9个点的权重总和等于0.4787147，因此上面9个值还要分别除以0.4787147，得到最终的高斯模板。</p>
 <p><img src="/img/DLIB-0026.png" srcset="/img/loading.gif" lazyload></p>
 <p><strong>4 高斯滤波计算</strong></p>
@@ -446,6 +446,27 @@
             <hr/>
             <div>
               <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E5%9B%BE%E5%83%8F/" class="category-chain-item">图像</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
   
   
     <div class="post-meta">
